@@ -1,2 +1,3 @@
-# actions
-GitHub actions for Solana projects
+# `actions`
+
+GitHub actions for Solana projects.

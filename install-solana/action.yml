@@ -1,0 +1,65 @@
+name: Install Solana CLI
+
+inputs:
+  release:
+    description: The Solana CLI version to install
+    required: true
+    default: "stable"
+  cache:
+    description: Whether the downloaded Solana CLI release should be cached
+    required: true
+    default: "true"
+  base_url:
+    description: The base URL to download the Solana CLI release from — e.g. https://release.anza.com.
+    required: false
+
+runs:
+  using: "composite"
+  steps:
+    - name: Cache Release
+      id: cache
+      if: inputs.cache == 'true'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.local/share/solana/install/releases/${{ inputs.release }}
+          ~/.cache/solana
+        key: ${{ runner.os }}-solana-v${{ inputs.release }}
+
+    - name: Resolve Base URL
+      id: base_url
+      run: |
+        if [ "${{ inputs.base_url }}" != "" ]; then
+          echo "base_url='${{ inputs.base_url }}'" >> $GITHUB_OUTPUT
+        else
+          cutoff="1.18.19"
+          desired="${{ inputs.release }}"
+          if [ "$(printf '%s\n' "$cutoff" "$desired" | sort -V | head -n1)" = "$desired" ] && [ "$cutoff" != "$desired" ]; then
+            echo "base_url='https://release.solana.com'" >> $GITHUB_OUTPUT
+          else
+            echo "base_url='https://release.anza.xyz'" >> $GITHUB_OUTPUT
+          fi
+        fi
+      shell: bash
+
+    - name: Install Solana CLI
+      if: inputs.cache != 'true' || steps.cache.outputs.cache-hit != 'true'
+      run: |
+        sh -c "$(curl -sSfL ${{ steps.base_url.outputs.base_url }}/${{ inputs.release }}/install)"
+      shell: bash
+
+    - name: Set Active Version
+      run: |
+        rm -f "$HOME/.local/share/solana/install/active_release"
+        ln -s "$HOME/.local/share/solana/install/releases/${{ inputs.release }}/solana-release" "$HOME/.local/share/solana/install/active_release"
+      shell: bash
+
+    - name: Add Binary to Path
+      run: |
+        echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+      shell: bash
+
+    - name: Verify Binary Version
+      run: |
+        solana --version
+      shell: bash
