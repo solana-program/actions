@@ -48,12 +48,6 @@ runs:
         sh -c "$(curl -sSfL ${{ steps.base_url.outputs.base_url }}/${{ inputs.release }}/install)"
       shell: bash
 
-    - name: Set Active Version
-      run: |
-        rm -f "$HOME/.local/share/solana/install/active_release"
-        ln -s "$HOME/.local/share/solana/install/releases/${{ inputs.release }}/solana-release" "$HOME/.local/share/solana/install/active_release"
-      shell: bash
-
     - name: Add Binary to Path
       run: |
         echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
