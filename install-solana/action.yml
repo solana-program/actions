@@ -24,7 +24,7 @@ runs:
         path: |
           ~/.local/share/solana/install/releases/${{ inputs.release }}
           ~/.cache/solana
-        key: ${{ runner.os }}-solana-v${{ inputs.release }}
+        key: ${{ runner.os }}-solana-${{ inputs.release }}
 
     - name: Resolve Base URL
       id: base_url
