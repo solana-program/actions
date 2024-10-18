@@ -22,7 +22,7 @@ runs:
       uses: actions/cache@v4
       with:
         path: |
-          ~/.local/share/solana/install/releases/${{ inputs.release }}
+          ~/.local/share/solana/install/releases
           ~/.cache/solana
         key: ${{ runner.os }}-solana-${{ inputs.release }}
 
@@ -46,6 +46,13 @@ runs:
       if: inputs.cache != 'true' || steps.cache.outputs.cache-hit != 'true'
       run: |
         sh -c "$(curl -sSfL ${{ steps.base_url.outputs.base_url }}/${{ inputs.release }}/install)"
+      shell: bash
+
+    - name: Set Active Version
+      run: |
+        rm -f "$HOME/.local/share/solana/install/active_release"
+        RELEASE=$(ls -d $HOME/.local/share/solana/install/releases/*)
+        ln -s "$RELEASE/solana-release" "$HOME/.local/share/solana/install/active_release"
       shell: bash
 
     - name: Add Binary to Path
