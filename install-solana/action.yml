@@ -29,11 +29,12 @@ runs:
     - name: Resolve Inputs
       id: resolve
       run: |
+        desired="${{ inputs.version }}"
+
         if [ "${{ inputs.base_url }}" != "" ]; then
           echo "base_url='${{ inputs.base_url }}'" >> $GITHUB_OUTPUT
         else
           cutoff="1.18.19"
-          desired="${{ inputs.version }}"
           if [ "$(printf '%s\n' "$cutoff" "${desired#v}" | sort -V | head -n1)" = "${desired#v}" ] && [ "$cutoff" != "${desired#v}" ]; then
             echo "base_url='https://release.solana.com'" >> $GITHUB_OUTPUT
           else
