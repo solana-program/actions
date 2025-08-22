@@ -13,19 +13,21 @@ inputs:
   pnpm:
     description: Install pnpm if `true`. Defaults to `false`.
     required: false
-  stable-toolchain:
-    description: Install stable toolchain if `true`. Defaults to `false`.
+  default-toolchain:
+    description: Install default toolchain if `true`. Defaults to `false`.
     required: false
   nightly-toolchain:
     description: Install nightly toolchain specified as cargo invocations, e.g. `"nightly-2025-02-16"`.
     required: false
     default: 'false'
-  clippy:
-    description: Install Clippy with the nightly toolchain specified in `nightly-toolchain` if `true`. Defaults to `false`. Requires `nightly-toolchain`.
+  clippy-toolchain:
+    description: Install Clippy with the specified toolchain.
     required: false
-  rustfmt:
-    description: Install Rustfmt with the nightly toolchain specified in `nightly-toolchain` if `true`. Defaults to `false`. Requires `nightly-toolchain`.
+    default: 'false'
+  rustfmt-toolchain:
+    description: Install Rustfmt with the specified toolchain.
     required: false
+    default: 'false'
   solana:
     description: Install Solana specified as a major-minor-patch version, e.g. `"2.3.4"`.
     required: false
@@ -43,8 +45,8 @@ runs:
     - name: Set Environment Variables
       shell: bash
       run: |
-        RUST_TOOLCHAIN_STABLE=$(tail -n1 ./rust-toolchain.toml | sed "s/channel = \"\(.*\)\"/\1/")
-        echo "RUST_TOOLCHAIN_STABLE=$RUST_TOOLCHAIN_STABLE" >> "$GITHUB_ENV"
+        RUST_TOOLCHAIN_DEFAULT=$(grep "channel =" ./rust-toolchain.toml | sed "s/channel = \"\(.*\)\"/\1/")
+        echo "RUST_TOOLCHAIN_DEFAULT=$RUST_TOOLCHAIN_DEFAULT" >> "$GITHUB_ENV"
 
     - name: Setup pnpm
       if: ${{ inputs.pnpm == 'true' }}
@@ -96,11 +98,11 @@ runs:
         #sudo swapoff -a
         #sudo rm -f /mnt/swapfile
 
-    - name: Install stable toolchain
-      if: ${{ inputs.stable-toolchain == 'true' }}
+    - name: Install default toolchain
+      if: ${{ inputs.default-toolchain == 'true' }}
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: ${{ env.RUST_TOOLCHAIN_STABLE }}
+        toolchain: ${{ env.RUST_TOOLCHAIN_DEFAULT }}
 
     - name: Install nightly toolchain
       if: ${{ inputs.nightly-toolchain != 'false' }}
@@ -109,17 +111,17 @@ runs:
         toolchain: ${{ inputs.nightly-toolchain }}
 
     - name: Install Rustfmt
-      if: ${{ inputs.rustfmt == 'true' }}
+      if: ${{ inputs.rustfmt-toolchain != 'false' }}
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: ${{ inputs.nightly-toolchain }}
+        toolchain: ${{ inputs.rustfmt-toolchain }}
         components: rustfmt
 
     - name: Install Clippy
-      if: ${{ inputs.clippy == 'true' }}
+      if: ${{ inputs.clippy-toolchain != 'false' }}
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: ${{ inputs.nightly-toolchain }}
+        toolchain: ${{ inputs.clippy-toolchain }}
         components: clippy
 
     - name: Install Solana
