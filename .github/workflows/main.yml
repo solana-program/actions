@@ -1,4 +1,4 @@
-name: PR
+name: Main
 
 on:
   workflow_call:
