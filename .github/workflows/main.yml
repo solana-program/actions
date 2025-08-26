@@ -1,28 +1,30 @@
 name: PR
 
-inputs:
-  js-packages:
-    description: JS packages to check and test.
-    required: false
-    default: []
-  sbpf-program-packages:
-    description: SBPF programs to build and test.
-    required: false
-    default: []
-  rust-packages:
-    description: Rust programs to build and test.
-    required: false
-    default: []
-  wasm-packages:
-    description: Rust packages to build with a wasm target.
-    required: false
-    default: []
-  rust-toolchain-nightly:
-    description: Install nightly toolchain specified as cargo invocations, e.g. `"nightly-2025-02-16"`.
-    required: true
-  solana-cli-version:
-    description: Install Solana specified as a major-minor-patch version, e.g. `"2.3.4"`.
-    required: true
+on:
+  workflow_call:
+    inputs:
+      js-packages:
+        description: JS packages to check and test.
+        required: false
+        default: []
+      sbpf-program-packages:
+        description: SBPF programs to build and test.
+        required: false
+        default: []
+      rust-packages:
+        description: Rust programs to build and test.
+        required: false
+        default: []
+      wasm-packages:
+        description: Rust packages to build with a wasm target.
+        required: false
+        default: []
+      rust-toolchain-nightly:
+        description: Install nightly toolchain specified as cargo invocations, e.g. `"nightly-2025-02-16"`.
+        required: true
+      solana-cli-version:
+        description: Install Solana specified as a major-minor-patch version, e.g. `"2.3.4"`.
+        required: true
 
 jobs:
   format_and_lint_js:
