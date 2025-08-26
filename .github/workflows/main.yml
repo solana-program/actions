@@ -4,27 +4,29 @@ on:
   workflow_call:
     inputs:
       js-packages:
-        description: JS packages to check and test.
+        description: JS packages to check and test as a JSON-encoded array of strings, e.g. `["package", "package2"]`.
         required: false
-        default: []
+        type: string
       sbpf-program-packages:
-        description: SBPF programs to build and test.
+        description: SBPF programs to build and test as a JSON-encoded array of strings, e.g. `["package", "package2"]`.
         required: false
-        default: []
+        type: string
       rust-packages:
-        description: Rust programs to build and test.
+        description: Rust programs to build and test as a JSON-encoded array of strings, e.g. `["package", "package2"]`.
         required: false
-        default: []
+        type: string
       wasm-packages:
-        description: Rust packages to build with a wasm target.
+        description: Rust packages to build with a wasm target, e.g. `["package", "package2"].
         required: false
-        default: []
+        type: string
       rust-toolchain-nightly:
         description: Install nightly toolchain specified as cargo invocations, e.g. `"nightly-2025-02-16"`.
         required: true
+        type: string
       solana-cli-version:
         description: Install Solana specified as a major-minor-patch version, e.g. `"2.3.4"`.
         required: true
+        type: string
 
 jobs:
   format_and_lint_js:
@@ -32,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package: ${{ inputs.js-packages }}
+        package: ${{ fromJson(inputs.js-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
@@ -97,7 +99,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package: ${{ inputs.rust-packages }}
+        package: ${{ fromJson(inputs.rust-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
@@ -133,7 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package: ${{ inputs.wasm-packages }}
+        package: ${{ fromJson(inputs.wasm-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
@@ -156,7 +158,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        package: ${{ inputs.sbpf-program-packages }}
+        package: ${{ fromJson(inputs.sbpf-program-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
@@ -191,7 +193,7 @@ jobs:
     needs: build_sbpf
     strategy:
       matrix:
-        package: ${{ inputs.rust-packages }}
+        package: ${{ fromJson(inputs.rust-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
@@ -246,7 +248,7 @@ jobs:
     needs: build_sbpf
     strategy:
       matrix:
-        package: ${{ inputs.js-packages }}
+        package: ${{ fromJson(inputs.js-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
