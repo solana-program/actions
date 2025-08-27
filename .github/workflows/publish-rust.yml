@@ -69,7 +69,7 @@ jobs:
       - name: Build programs
         shell: bash
         run: |
-          for $program in ${{ inputs.sbpf-program-packages }}
+          for program in ${{ inputs.sbpf-program-packages }}
           do
             make build-sbf-$program
           done
