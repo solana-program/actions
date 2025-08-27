@@ -174,18 +174,11 @@ jobs:
       - name: Build
         run: make build-sbf-${{ matrix.package }}
 
-      - name: Upload Program Build
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-sbf-${{ matrix.package }}
-          path: ./target/deploy/*.so
-          if-no-files-found: error
-
       - name: Save Program Builds For Client Jobs
         uses: actions/cache/save@v4
         with:
           path: ./target/deploy/*.so
-          key: ${{ runner.os }}-builds-${{ github.sha }}-${{ matrix.package }}
+          key: ${{ runner.os }}-builds-${{ github.sha }}
 
   test_rust:
     name: Test Rust
@@ -210,13 +203,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./target/deploy/*.so
-          key: ${{ runner.os }}-builds-${{ github.sha }}-program
-
-      - name: Restore Program Builds
-        uses: actions/cache/restore@v4
-        with:
-          path: ./target/deploy/*.so
-          key: ${{ runner.os }}-builds-${{ github.sha }}-confidential-elgamal-registry
+          key: ${{ runner.os }}-builds-${{ github.sha }}
 
       - name: Test
         run: make test-${{ matrix.package }}
@@ -264,13 +251,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./target/deploy/*.so
-          key: ${{ runner.os }}-builds-${{ github.sha }}-program
-
-      - name: Restore Program Builds
-        uses: actions/cache/restore@v4
-        with:
-          path: ./target/deploy/*.so
-          key: ${{ runner.os }}-builds-${{ github.sha }}-confidential-elgamal-registry
+          key: ${{ runner.os }}-builds-${{ github.sha }}
 
       - name: Test Client JS
         run: make test-${{ matrix.package }}
