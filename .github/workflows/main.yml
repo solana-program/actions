@@ -1,0 +1,261 @@
+name: Main
+
+on:
+  workflow_call:
+    inputs:
+      js-packages:
+        description: JS packages to check and test as a JSON-encoded array of strings, e.g. `["package", "package2"]`.
+        required: false
+        type: string
+      sbpf-program-packages:
+        description: SBPF programs to build and test as a JSON-encoded array of strings, e.g. `["package", "package2"]`.
+        required: false
+        type: string
+      rust-packages:
+        description: Rust programs to build and test as a JSON-encoded array of strings, e.g. `["package", "package2"]`.
+        required: false
+        type: string
+      wasm-packages:
+        description: Rust packages to build with a wasm target, e.g. `["package", "package2"].
+        required: false
+        type: string
+      clippy-toolchain:
+        description: Install toolchain for clippy, as specified in cargo invocations, e.g. `"nightly-2025-02-16"`.
+        required: false
+        type: string
+      rustfmt-toolchain:
+        description: Install toolchain for rustfmt, as specified in cargo invocations, e.g. `"nightly-2025-02-16"`.
+        required: false
+        type: string
+      solana-cli-version:
+        description: Install Solana specified as a major-minor-patch version, e.g. `"2.3.4"`.
+        required: false
+        type: string
+
+jobs:
+  format_and_lint_js:
+    name: Format & Lint JS
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ${{ fromJson(inputs.js-packages) }}
+      fail-fast: false
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          pnpm: true
+
+      - name: Format
+        run: make format-check-${{ matrix.package }}
+
+      - name: Lint
+        run: make lint-${{ matrix.package }}
+
+  audit:
+    name: Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          default-toolchain: true
+          cargo-cache-key: cargo-audit
+
+      - name: Install cargo-audit
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-audit
+
+      - name: Run cargo-audit
+        run: make audit
+
+  spellcheck:
+    name: Spellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          default-toolchain: true
+          cli: true # needed for llvm-config
+          cargo-cache-key: cargo-spellcheck
+
+      - name: Install cargo-spellcheck
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-spellcheck
+
+      - name: Run cargo-spellcheck
+        run: make spellcheck
+
+  format_and_lint_rust:
+    name: Format & Lint Rust
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ${{ fromJson(inputs.rust-packages) }}
+      fail-fast: false
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          clippy-toolchain: ${{ inputs.clippy-toolchain }}
+          rustfmt-toolchain: ${{ inputs.rustfmt-toolchain }}
+          cli: true
+          cargo-cache-key: cargo-lint-${{ matrix.package }}
+
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-hack
+
+      - name: Format
+        run: make format-check-${{ matrix.package }}
+
+      - name: Clippy
+        run: make clippy-${{ matrix.package }}
+
+      - name: Lint / Docs
+        run: make build-doc-${{ matrix.package }}
+
+      - name: Check powerset
+        run: make powerset-${{ matrix.package }}
+
+  wasm:
+    name: Build WASM
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ${{ fromJson(inputs.wasm-packages) }}
+      fail-fast: false
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          default-toolchain: true
+          cargo-cache-key: cargo-wasm-${{ matrix.package }}
+
+      - name: Install wasm target
+        run: rustup target add wasm32-unknown-unknown
+
+      - name: Build with wasm target
+        run: make build-wasm-${{ matrix.package }}
+
+  build_sbpf:
+    name: Build Program
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: ${{ fromJson(inputs.sbpf-program-packages) }}
+      fail-fast: false
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          default-toolchain: true
+          cargo-cache-key: cargo-build-sbf-${{ matrix.package }}
+          solana: ${{ inputs.solana-cli-version }}
+
+      - name: Build
+        run: make build-sbf-${{ matrix.package }}
+
+      - name: Save Program Builds For Client Jobs
+        uses: actions/cache/save@v4
+        with:
+          path: ./target/deploy/*.so
+          key: ${{ runner.os }}-program-builds-${{ github.sha }}
+
+  test_rust:
+    name: Test Rust
+    runs-on: ubuntu-latest
+    needs: build_sbpf
+    strategy:
+      matrix:
+        package: ${{ fromJson(inputs.rust-packages) }}
+      fail-fast: false
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          default-toolchain: true
+          cli: true
+          cargo-cache-key: cargo-test-${{ matrix.package }}
+
+      - name: Restore Program Builds
+        uses: actions/cache/restore@v4
+        with:
+          path: ./target/deploy/*.so
+          key: ${{ runner.os }}-program-builds-${{ github.sha }}
+
+      - name: Test
+        run: make test-${{ matrix.package }}
+
+  generate_clients:
+    name: Check Client Generation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          pnpm: true
+          rustfmt-toolchain: ${{ inputs.rustfmt-toolchain }}
+
+      - name: Generate Clients
+        run: make generate-clients
+
+      - name: Check Working Directory
+        run: |
+          git status --porcelain
+          test -z "$(git status --porcelain)"
+
+  test_js:
+    name: Test JS
+    runs-on: ubuntu-latest
+    needs: build_sbpf
+    strategy:
+      matrix:
+        package: ${{ fromJson(inputs.js-packages) }}
+      fail-fast: false
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          solana: ${{ inputs.solana-cli-version }}
+          pnpm: true
+
+      - name: Restore Program Builds
+        uses: actions/cache/restore@v4
+        with:
+          path: ./target/deploy/*.so
+          key: ${{ runner.os }}-program-builds-${{ github.sha }}
+
+      - name: Test Client JS
+        run: make test-${{ matrix.package }}
