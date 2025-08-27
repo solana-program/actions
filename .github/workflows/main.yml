@@ -226,7 +226,7 @@ jobs:
           rustfmt-toolchain: ${{ inputs.rustfmt-toolchain }}
 
       - name: Generate Clients
-        run: pnpm generate:clients
+        run: make generate-clients
 
       - name: Check Working Directory
         run: |
