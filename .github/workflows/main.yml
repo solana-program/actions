@@ -19,13 +19,17 @@ on:
         description: Rust packages to build with a wasm target, e.g. `["package", "package2"].
         required: false
         type: string
-      rust-toolchain-nightly:
-        description: Install nightly toolchain specified as cargo invocations, e.g. `"nightly-2025-02-16"`.
-        required: true
+      clippy-toolchain:
+        description: Install toolchain for clippy, as specified in cargo invocations, e.g. `"nightly-2025-02-16"`.
+        required: false
+        type: string
+      rustfmt-toolchain:
+        description: Install toolchain for rustfmt, as specified in cargo invocations, e.g. `"nightly-2025-02-16"`.
+        required: false
         type: string
       solana-cli-version:
         description: Install Solana specified as a major-minor-patch version, e.g. `"2.3.4"`.
-        required: true
+        required: false
         type: string
 
 jobs:
@@ -108,8 +112,8 @@ jobs:
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
         with:
-          clippy-toolchain: ${{ inputs.rust-toolchain-nightly }}
-          rustfmt-toolchain: ${{ inputs.rust-toolchain-nightly }}
+          clippy-toolchain: ${{ inputs.clippy-toolchain }}
+          rustfmt-toolchain: ${{ inputs.rustfmt-toolchain }}
           cli: true
           cargo-cache-key: cargo-lint-${{ matrix.package }}
 
@@ -219,7 +223,7 @@ jobs:
         uses: solana-program/actions/setup-ubuntu@main
         with:
           pnpm: true
-          rustfmt-toolchain: ${{ inputs.rust-toolchain-nightly }}
+          rustfmt-toolchain: ${{ inputs.rustfmt-toolchain }}
 
       - name: Generate Clients
         run: pnpm generate:clients
