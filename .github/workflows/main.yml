@@ -182,7 +182,7 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: ./target/deploy/*.so
-          key: ${{ runner.os }}-builds-${{ github.sha }}
+          key: ${{ runner.os }}-program-builds-${{ github.sha }}
 
   test_rust:
     name: Test Rust
@@ -207,7 +207,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./target/deploy/*.so
-          key: ${{ runner.os }}-builds-${{ github.sha }}
+          key: ${{ runner.os }}-program-builds-${{ github.sha }}
 
       - name: Test
         run: make test-${{ matrix.package }}
@@ -255,7 +255,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: ./target/deploy/*.so
-          key: ${{ runner.os }}-builds-${{ github.sha }}
+          key: ${{ runner.os }}-program-builds-${{ github.sha }}
 
       - name: Test Client JS
         run: make test-${{ matrix.package }}
