@@ -158,12 +158,8 @@ jobs:
         run: make build-wasm-${{ matrix.package }}
 
   build_sbpf:
-    name: Build Program
+    name: Build Programs
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        package: ${{ fromJson(inputs.sbpf-program-packages) }}
-      fail-fast: false
     steps:
       - name: Git Checkout
         uses: actions/checkout@v4
@@ -172,11 +168,16 @@ jobs:
         uses: solana-program/actions/setup-ubuntu@main
         with:
           default-toolchain: true
-          cargo-cache-key: cargo-build-sbf-${{ matrix.package }}
+          cargo-cache-key: cargo-build-sbf
           solana: ${{ inputs.solana-cli-version }}
 
       - name: Build
-        run: make build-sbf-${{ matrix.package }}
+        shell: bash
+        run: |
+          for program in $(echo '${{ inputs.sbpf-program-packages }}' | jq -r '.[]')
+          do
+            make build-sbf-${program}
+          done
 
       - name: Save Program Builds For Client Jobs
         uses: actions/cache/save@v4
