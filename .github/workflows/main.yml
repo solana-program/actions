@@ -174,7 +174,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          for program in $(echo '${{ inputs.sbpf-program-packages }}' | jq -r '.[]')
+          for program in $(echo "${{ inputs.sbpf-program-packages }}" | tr -d "'[],")
           do
             make build-sbf-${program}
           done
