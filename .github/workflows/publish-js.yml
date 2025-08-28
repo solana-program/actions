@@ -23,10 +23,6 @@ on:
         description: Version level
         required: true
         type: string
-      tag:
-        description: NPM Tag (and preid for pre-releases)
-        required: true
-        type: string
       create-release:
         description: Create a GitHub release
         required: true
@@ -56,7 +52,7 @@ jobs:
       - name: Build programs
         shell: bash
         run: |
-          for $program in ${{ inputs.sbpf-program-packages }}
+          for program in ${{ inputs.sbpf-program-packages }}
           do
             make build-sbf-$program
           done
@@ -116,10 +112,18 @@ jobs:
 
       - name: Publish
         id: publish
-        run: ./scripts/publish-js.sh "${{ inputs.package-path }}" ${{ inputs.level }} ${{ inputs.tag }}
+        shell: bash
+        run: |
+          echo "old_git_tag=$(make git-tag-js-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
+          make publish-js-${{ inputs.level }}-${{ inputs.target }}
+          echo "new_git_tag=$(make git-tag-js-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
 
-      - name: Push Commit and Tag
-        run: git push origin --follow-tags
+      - name: Git Commit Bump, Tag, and Push
+        shell: bash
+        run: |
+          git commit -am "Publish ${{ steps.publish.outputs.new_git_tag }}"
+          git tag -a "${{ steps.publish.outputs.new_git_tag }}" -m "Publish ${{ steps.publish.outputs.new_git_tag }}"
+          git push origin --follow-tags
 
       - name: Generate a changelog
         if: github.event.inputs.create-release == 'true'
