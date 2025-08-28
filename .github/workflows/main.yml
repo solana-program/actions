@@ -50,10 +50,10 @@ jobs:
           pnpm: true
 
       - name: Format
-        run: make format-check-${{ matrix.package }}
+        run: make format-check-js-${{ matrix.package }}
 
       - name: Lint
-        run: make lint-${{ matrix.package }}
+        run: make lint-js-${{ matrix.package }}
 
   audit:
     name: Audit
@@ -258,5 +258,5 @@ jobs:
           path: ./target/deploy/*.so
           key: ${{ runner.os }}-program-builds-${{ github.sha }}
 
-      - name: Test Client JS
-        run: make test-${{ matrix.package }}
+      - name: Test
+        run: make test-js-${{ matrix.package }}
