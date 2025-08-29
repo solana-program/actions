@@ -23,6 +23,10 @@ on:
         description: Version level
         required: true
         type: string
+      tag:
+        description: NPM Tag (and preid for pre-releases)
+        required: true
+        type: string
       create-release:
         description: Create a GitHub release
         required: true
@@ -115,7 +119,7 @@ jobs:
         shell: bash
         run: |
           echo "old_git_tag=$(make git-tag-js-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
-          make publish-js-${{ inputs.level }}-${{ inputs.target }}
+          LEVEL=${{ inputs.level }} TAG=${{ inputs.tag }} make publish-js-${{ inputs.target }}
           echo "new_git_tag=$(make git-tag-js-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
 
       - name: Git Commit Bump, Tag, and Push
