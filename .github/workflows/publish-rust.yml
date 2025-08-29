@@ -1,0 +1,210 @@
+name: Publish Rust Crate
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        description: Target
+        required: true
+        type: string
+      clippy-toolchain:
+        description: Install toolchain for clippy as specified as cargo invocations, e.g. `"nightly-2025-02-16"`.
+        required: true
+        type: string
+      rustfmt-toolchain:
+        description: Install toolchain for rustfmt as specified as cargo invocations, e.g. `"nightly-2025-02-16"`.
+        required: true
+        type: string
+      solana-cli-version:
+        description: Install Solana specified as a major-minor-patch version, e.g. `"2.3.4"`.
+        required: true
+        type: string
+      sbpf-program-packages:
+        description: SBPF programs to build and test as a string of space-separated targets, e.g. `package package2`.
+        required: false
+        type: string
+      package-path:
+        description: Path to directory with package to release
+        required: true
+        type: string
+      level:
+        description: Version level
+        required: true
+        type: string
+      version:
+        description: Version (used with level "version")
+        required: false
+        type: string
+      dry-run:
+        description: Dry run
+        required: true
+        default: true
+        type: boolean
+      create-release:
+        description: Create a GitHub release
+        required: true
+        type: boolean
+
+jobs:
+  test:
+    name: Test Rust Crate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          clippy-toolchain: ${{ inputs.clippy-toolchain }}
+          rustfmt-toolchain: ${{ inputs.rustfmt-toolchain }}
+          solana: ${{ inputs.solana-cli-version }}
+          cli: true
+          purge: true
+          cargo-cache-key: cargo-test-publish-${{ inputs.package-path }}
+          cargo-cache-fallback-key: cargo-test-publish
+
+      - name: Format
+        run: make format-check-${{ inputs.target }}
+
+      - name: Lint
+        run: make lint-${{ inputs.target }}
+
+      - name: Build programs
+        shell: bash
+        run: |
+          for program in ${{ inputs.sbpf-program-packages }}
+          do
+            make build-sbf-$program
+          done
+
+      - name: Test
+        run: make test-${{ inputs.target }}
+
+  semver:
+    name: Check Semver
+    runs-on: ubuntu-latest
+    steps:
+      - name: Git checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          cli: true
+          cargo-cache-key: cargo-publish-semver-${{ inputs.package-path }}
+          cargo-cache-fallback-key: cargo-publish-semver
+
+      - name: Install cargo-semver-checks
+        uses: taiki-e/install-action@v2
+        with:
+          tool: toml-cli,cargo-semver-checks@0.42.0,cargo-release@0.25.18
+
+      - name: Check if crate has a lib target
+        id: has_lib
+        shell: bash
+        run: |
+          set +e # toml crashes the whole shell if it fails to find the key
+          result=$(toml get "${{ inputs.package-path }}/Cargo.toml" lib.crate-type)
+          if [[ "$result" == *"lib"* ]]; then
+            echo "has_lib=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_lib=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set Git Author (required for cargo-release)
+        if: ${{ steps.has_lib.outputs.has_lib == 'true' }}
+        run: |
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: Set Version
+        if: ${{ steps.has_lib.outputs.has_lib == 'true' }}
+        run: |
+          if [ "${{ inputs.level }}" == "version" ]; then
+            LEVEL=${{ inputs.version }}
+          else
+            LEVEL=${{ inputs.level }}
+          fi
+          cargo release $LEVEL --manifest-path "${{ inputs.package-path }}/Cargo.toml" --no-tag --no-publish --no-push --no-confirm --execute
+
+      - name: Check semver
+        if: ${{ steps.has_lib.outputs.has_lib == 'true' }}
+        run: cargo semver-checks --manifest-path "${{ inputs.package-path }}/Cargo.toml"
+
+  publish:
+    name: Publish Rust Crate
+    runs-on: ubuntu-latest
+    needs: [test, semver]
+    permissions:
+      contents: write
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.ANZA_TEAM_PAT }}
+          fetch-depth: 0 # get the whole history for git-cliff
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          cli: true
+          cargo-cache-key: cargo-publish-${{ inputs.package-path }}
+          cargo-cache-fallback-key: cargo-publish
+
+      - name: Install cargo-release and toml-cli
+        uses: taiki-e/install-action@v2
+        with:
+          tool: toml-cli,cargo-release@0.25.18
+
+      - name: Ensure CARGO_REGISTRY_TOKEN variable is set
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        if: ${{ env.CARGO_REGISTRY_TOKEN == '' }}
+        run: |
+          echo "The CARGO_REGISTRY_TOKEN secret variable is not set"
+          echo "Go to \"Settings\" -> \"Secrets and variables\" -> \"Actions\" -> \"New repository secret\"."
+          exit 1
+
+      - name: Set Git Author
+        run: |
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: Publish Crate
+        id: publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          if [ "${{ inputs.level }}" == "version" ]; then
+            LEVEL=${{ inputs.version }}
+          else
+            LEVEL=${{ inputs.level }}
+          fi
+
+          if [ "${{ inputs.dry-run }}" == "true" ]; then
+            OPTIONS="dry-run-"
+          else
+            OPTIONS=""
+          fi
+
+          echo "old_git_tag=$(make git-tag-rust-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
+          LEVEL=${LEVEL} make publish-rust-${OPTIONS}${{ inputs.target }}
+          echo "new_git_tag=$(make git-tag-rust-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
+
+      - name: Generate a changelog
+        if: github.event.inputs.create-release == 'true'
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: "scripts/cliff.toml"
+          args: ${{ steps.publish.outputs.old_git_tag }}..HEAD --include-path "${{ inputs.package-path }}/**" --github-repo ${{ github.repository }}
+        env:
+          OUTPUT: TEMP_CHANGELOG.md
+          GITHUB_REPO: ${{ github.repository }}
+
+      - name: Create GitHub release
+        if: github.event.inputs.create-release == 'true' && github.event.inputs.dry-run != 'true'
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ steps.publish.outputs.new_git_tag }}
+          bodyFile: TEMP_CHANGELOG.md
