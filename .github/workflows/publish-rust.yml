@@ -189,7 +189,7 @@ jobs:
           fi
 
           echo "old_git_tag=$(make git-tag-rust-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
-          make publish-rust-${OPTIONS}${LEVEL}-${{ inputs.target }}
+          LEVEL=${LEVEL} make publish-rust-${OPTIONS}${{ inputs.target }}
           echo "new_git_tag=$(make git-tag-rust-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
 
       - name: Generate a changelog
