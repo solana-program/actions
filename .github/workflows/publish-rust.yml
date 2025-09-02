@@ -67,8 +67,8 @@ jobs:
       - name: Format
         run: make format-check-${{ inputs.target }}
 
-      - name: Lint
-        run: make lint-${{ inputs.target }}
+      - name: Clippy
+        run: make clippy-${{ inputs.target }}
 
       - name: Build programs
         shell: bash
