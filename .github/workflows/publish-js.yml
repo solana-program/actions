@@ -48,10 +48,10 @@ jobs:
           cargo-cache-fallback-key: cargo-publish-js-test
 
       - name: Format
-        run: make format-check-${{ inputs.target }}
+        run: make format-check-js-${{ inputs.target }}
 
       - name: Lint
-        run: make lint-${{ inputs.target }}
+        run: make lint-js-${{ inputs.target }}
 
       - name: Build programs
         shell: bash
@@ -62,7 +62,7 @@ jobs:
           done
 
       - name: Test
-        run: make test-${{ inputs.target }}
+        run: make test-js-${{ inputs.target }}
 
   publish:
     name: Publish package
