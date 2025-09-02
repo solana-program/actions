@@ -43,6 +43,7 @@ jobs:
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
         with:
+          pnpm: true
           solana: ${{ inputs.solana-cli-version }}
           cargo-cache-key: cargo-publish-js-test-${{ inputs.package-path }}
           cargo-cache-fallback-key: cargo-publish-js-test
