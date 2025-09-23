@@ -44,9 +44,10 @@ jobs:
   format_and_lint_js:
     name: Format & Lint JS
     runs-on: ubuntu-latest
+    if: ${{ inputs.js-packages }}
     strategy:
       matrix:
-        package: ${{ fromJson(inputs.js-packages || '[]') }}
+        package: ${{ fromJson(inputs.js-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
@@ -109,9 +110,10 @@ jobs:
   format_and_lint_rust:
     name: Format & Lint Rust
     runs-on: ubuntu-latest
+    if: ${{ inputs.rust-packages }}
     strategy:
       matrix:
-        package: ${{ fromJson(inputs.rust-packages || '[]') }}
+        package: ${{ fromJson(inputs.rust-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
@@ -145,9 +147,10 @@ jobs:
   wasm:
     name: Build WASM
     runs-on: ubuntu-latest
+    if: ${{ inputs.wasm-packages }}
     strategy:
       matrix:
-        package: ${{ fromJson(inputs.wasm-packages || '[]') }}
+        package: ${{ fromJson(inputs.wasm-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
@@ -168,6 +171,7 @@ jobs:
   build_sbpf:
     name: Build Programs
     runs-on: ubuntu-latest
+    if: ${{ inputs.sbpf-program-packages }}
     steps:
       - name: Git Checkout
         uses: actions/checkout@v4
@@ -182,7 +186,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          for program in $(echo ${{ inputs.sbpf-program-packages || '[]'}} | tr -d "'[],")
+          for program in $(echo ${{ inputs.sbpf-program-packages }} | tr -d "'[],")
           do
             make build-sbf-${program}
           done
@@ -196,10 +200,11 @@ jobs:
   test_rust:
     name: Test Rust
     runs-on: ubuntu-latest
+    if: ${{ inputs.rust-packages }}
     needs: build_sbpf
     strategy:
       matrix:
-        package: ${{ fromJson(inputs.rust-packages || '[]') }}
+        package: ${{ fromJson(inputs.rust-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
@@ -224,10 +229,11 @@ jobs:
   bench_rust:
     name: Bench Rust
     runs-on: ubuntu-latest
+    if: ${{ inputs.bench-packages }}
     needs: build_sbpf
     strategy:
       matrix:
-        package: ${{ fromJson(inputs.bench-packages || '[]') }}
+        package: ${{ fromJson(inputs.bench-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
@@ -260,10 +266,11 @@ jobs:
   regression:
     name: Regression Programs
     runs-on: ubuntu-latest
+    if: ${{ inputs.regression-packages }}
     needs: build_sbpf
     strategy:
       matrix:
-        package: ${{ fromJson(inputs.regression-packages || '[]') }}
+        package: ${{ fromJson(inputs.regression-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
@@ -315,9 +322,10 @@ jobs:
     name: Test JS
     runs-on: ubuntu-latest
     needs: build_sbpf
+    if: ${{ inputs.js-packages }}
     strategy:
       matrix:
-        package: ${{ fromJson(inputs.js-packages || '[]') }}
+        package: ${{ fromJson(inputs.js-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
