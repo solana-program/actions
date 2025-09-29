@@ -19,6 +19,10 @@ on:
         description: Rust packages to build with a wasm target, e.g. `["package", "package2"]`.
         required: false
         type: string
+      idl-packages:
+        description: Packages to generate IDLS from, e.g. `["package", "package2"]`
+        required: false
+        type: string
       bench-packages:
         description: Rust packages to bench, e.g. `["package", "package2"]`
         required: false
@@ -296,6 +300,31 @@ jobs:
 
       - name: Regression
         run: make regression-${{ matrix.package }}
+
+  generate_idl:
+    name: Generate IDL
+    runs-on: ubuntu-latest
+    if: ${{ inputs.idl-packages }}
+    strategy:
+      matrix:
+        package: ${{ fromJson(inputs.idl-packages) }}
+      fail-fast: false
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          pnpm: true
+
+      - name: Generate IDL
+        run: make generate-idl-${{ matrix.package }}
+
+      - name: Check Working Directory
+        run: |
+          git status --porcelain
+          test -z "$(git status --porcelain)"
 
   generate_clients:
     name: Check Client Generation
