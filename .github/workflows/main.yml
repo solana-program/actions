@@ -172,15 +172,18 @@ jobs:
       - name: Build with wasm target
         run: make build-wasm-${{ matrix.package }}
 
+  # The test jobs rely on this being successful, so we have to do the "if" check
+  # at every step if `sbpf-program-packages` isn't specified.
   build_sbpf:
     name: Build Programs
     runs-on: ubuntu-latest
-    if: ${{ inputs.sbpf-program-packages }}
     steps:
       - name: Git Checkout
+        if: ${{ inputs.sbpf-program-packages }}
         uses: actions/checkout@v4
 
       - name: Setup Environment
+        if: ${{ inputs.sbpf-program-packages }}
         uses: solana-program/actions/setup-ubuntu@main
         with:
           default-toolchain: true
@@ -188,6 +191,7 @@ jobs:
           solana: ${{ inputs.solana-cli-version }}
 
       - name: Build
+        if: ${{ inputs.sbpf-program-packages }}
         shell: bash
         run: |
           for program in $(echo ${{ inputs.sbpf-program-packages }} | tr -d "'[],")
@@ -196,6 +200,7 @@ jobs:
           done
 
       - name: Save Program Builds For Client Jobs
+        if: ${{ inputs.sbpf-program-packages }}
         uses: actions/cache/save@v4
         with:
           path: ./target/deploy/*.so
