@@ -19,6 +19,11 @@ on:
         description: Rust packages to build with a wasm target, e.g. `["package", "package2"]`.
         required: false
         type: string
+      wasm-toolchain:
+        description: The Rust toolchain for wasm builds, e.g. "nightly-2025-02-16"
+        required: false
+        type: string
+        default: 'default'
       idl-packages:
         description: Packages to generate IDLS from, e.g. `["package", "package2"]`
         required: false
@@ -163,11 +168,18 @@ jobs:
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
         with:
-          default-toolchain: true
+          default-toolchain: ${{ inputs.wasm-toolchain == 'default' }}
+          nightly-toolchain: ${{ inputs.wasm-toolchain != 'default' && inputs.wasm-toolchain }}
           cargo-cache-key: cargo-wasm-${{ matrix.package }}
 
       - name: Install wasm target
-        run: rustup target add wasm32-unknown-unknown
+        shell: bash
+        run: |
+          if [[ "${{ inputs.wasm-toolchain }}" == "default" ]]; then
+            rustup target add wasm32-unknown-unknown
+          else
+            rustup target add wasm32-unknown-unknown --toolchain "${{ inputs.wasm-toolchain }}"
+          fi
 
       - name: Build with wasm target
         run: make build-wasm-${{ matrix.package }}
