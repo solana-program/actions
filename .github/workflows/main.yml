@@ -181,6 +181,9 @@ jobs:
             rustup target add wasm32-unknown-unknown --toolchain "${{ inputs.wasm-toolchain }}"
           fi
 
+      - name: Build with wasm target
+        run: make build-wasm-${{ matrix.package }}
+
   # The test jobs rely on this being successful, so we have to do the "if" check
   # at every step if `sbpf-program-packages` isn't specified.
   build_sbpf:
