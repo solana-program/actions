@@ -7,6 +7,10 @@ on:
         description: JS packages to check and test as a JSON-encoded array of strings, e.g. `["package", "package2"]`.
         required: false
         type: string
+      py-packages:
+        description: Python packages to check and test as a JSON-encoded array of strings, e.g. `["package", "package2"]`.
+        required: false
+        type: string
       sbpf-program-packages:
         description: SBPF programs to build and test as a JSON-encoded array of strings, e.g. `["package", "package2"]`.
         required: false
@@ -72,6 +76,29 @@ jobs:
 
       - name: Lint
         run: make lint-js-${{ matrix.package }}
+
+  format_and_lint_py:
+    name: Format & Lint Python
+    runs-on: ubuntu-latest
+    if: ${{ inputs.py-packages }}
+    strategy:
+      matrix:
+        package: ${{ fromJson(inputs.py-packages) }}
+      fail-fast: false
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          pnpm: true
+
+      - name: Format
+        run: make format-check-py-${{ matrix.package }}
+
+      - name: Lint
+        run: make lint-py-${{ matrix.package }}
 
   audit:
     name: Audit
@@ -391,3 +418,31 @@ jobs:
 
       - name: Test
         run: make test-js-${{ matrix.package }}
+
+  test_py:
+    name: Test Python
+    runs-on: ubuntu-latest
+    needs: build_sbpf
+    if: ${{ inputs.py-packages }}
+    strategy:
+      matrix:
+        package: ${{ fromJson(inputs.py-packages) }}
+      fail-fast: false
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          solana: ${{ inputs.solana-cli-version }}
+          pnpm: true
+
+      - name: Restore Program Builds
+        uses: actions/cache/restore@v4
+        with:
+          path: ./target/deploy/*.so
+          key: ${{ runner.os }}-program-builds-${{ github.sha }}
+
+      - name: Test
+        run: make test-py-${{ matrix.package }}
