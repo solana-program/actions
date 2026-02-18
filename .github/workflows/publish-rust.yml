@@ -98,7 +98,7 @@ jobs:
       - name: Install cargo-semver-checks
         uses: taiki-e/install-action@v2
         with:
-          tool: toml-cli,cargo-semver-checks@0.42.0,cargo-release@0.25.18
+          tool: toml-cli,cargo-semver-checks@0.46.0,cargo-release@0.25.18
 
       - name: Check if crate has a lib target
         id: has_lib
