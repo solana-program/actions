@@ -27,7 +27,6 @@ on:
         description: Rust toolchain to use for Miri runs, e.g. "nightly-2025-02-16".
         required: false
         type: string
-        default: 'nightly'
       wasm-packages:
         description: Rust packages to build with a wasm target, e.g. `["package", "package2"]`.
         required: false
@@ -299,10 +298,8 @@ jobs:
         uses: solana-program/actions/setup-ubuntu@main
         with:
           nightly-toolchain: ${{ inputs.miri-toolchain }}
+          miri: true
           cargo-cache-key: cargo-miri-${{ matrix.package }}
-
-      - name: Setup Miri
-        run: cargo +"${{ inputs.miri-toolchain }}" miri setup
 
       - name: Run Miri
         run: make miri-${{ matrix.package }}

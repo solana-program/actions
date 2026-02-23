@@ -20,6 +20,10 @@ inputs:
     description: Install nightly toolchain specified as cargo invocations, e.g. `"nightly-2025-02-16"`.
     required: false
     default: 'false'
+  miri:
+    description: Install Miri component and setup sysroot. Requires nightly-toolchain.
+    required: false
+    default: 'false'
   clippy-toolchain:
     description: Install Clippy with the specified toolchain.
     required: false
@@ -135,6 +139,21 @@ runs:
       if: ${{ inputs.cli == 'true' }}
       shell: bash
       run: sudo apt update && sudo apt install libudev-dev protobuf-compiler libclang-dev -y
+
+    - name: Install Miri
+      if: ${{ inputs.miri == 'true' }}
+      shell: bash
+      run: |
+        if [ "${{ inputs.nightly-toolchain }}" = "false" ]; then
+          echo "miri requires nightly-toolchain to be set"
+          exit 1
+        fi
+        rustup component add miri --toolchain "${{ inputs.nightly-toolchain }}"
+
+    - name: Setup Miri sysroot
+      if: ${{ inputs.miri == 'true' }}
+      shell: bash
+      run: cargo +"${{ inputs.nightly-toolchain }}" miri setup
 
     - name: Cache Cargo Dependencies
       if: ${{ inputs.cargo-cache-key && !inputs.cargo-cache-fallback-key }}
