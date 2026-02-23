@@ -19,6 +19,15 @@ on:
         description: Rust programs to build and test as a JSON-encoded array of strings, e.g. `["package", "package2"]`.
         required: false
         type: string
+      miri-packages:
+        description: Rust packages to run Miri on, e.g. `["package", "package2"]`.
+        required: false
+        type: string
+      miri-toolchain:
+        description: Rust toolchain to use for Miri runs, e.g. "nightly-2025-02-16".
+        required: false
+        type: string
+        default: 'nightly'
       wasm-packages:
         description: Rust packages to build with a wasm target, e.g. `["package", "package2"]`.
         required: false
@@ -273,6 +282,30 @@ jobs:
 
       - name: Test
         run: make test-${{ matrix.package }}
+
+  miri:
+    name: Run Miri
+    runs-on: ubuntu-latest
+    if: ${{ inputs.miri-packages }}
+    strategy:
+      matrix:
+        package: ${{ fromJson(inputs.miri-packages) }}
+      fail-fast: false
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          nightly-toolchain: ${{ inputs.miri-toolchain }}
+          cargo-cache-key: cargo-miri-${{ matrix.package }}
+
+      - name: Setup Miri
+        run: cargo +"${{ inputs.miri-toolchain }}" miri setup
+
+      - name: Run Miri
+        run: make miri-${{ matrix.package }}
 
   bench_rust:
     name: Bench Rust
