@@ -233,6 +233,7 @@ jobs:
           default-toolchain: ${{ inputs.wasm-toolchain == 'default' }}
           nightly-toolchain: ${{ inputs.wasm-toolchain != 'default' && inputs.wasm-toolchain }}
           cargo-cache-key: cargo-wasm-js-${{ matrix.package }}
+          pnpm: true
 
       - name: Install wasm target
         shell: bash
