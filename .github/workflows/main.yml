@@ -36,6 +36,10 @@ on:
         required: false
         type: string
         default: 'default'
+      wasm-js-packages:
+        description: Rust packages to build with wasm-pack, e.g. `["package", "package2"]`.
+        required: false
+        type: string
       idl-packages:
         description: Packages to generate IDLS from, e.g. `["package", "package2"]`
         required: false
@@ -218,6 +222,46 @@ jobs:
 
       - name: Build with wasm target
         run: make build-wasm-${{ matrix.package }}
+
+  wasm-js:
+    name: Build and test WASM JS
+    runs-on: ubuntu-latest
+    if: ${{ inputs.wasm-js-packages }}
+    strategy:
+      matrix:
+        package: ${{ fromJson(inputs.wasm-js-packages) }}
+      fail-fast: false
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          default-toolchain: ${{ inputs.wasm-toolchain == 'default' }}
+          nightly-toolchain: ${{ inputs.wasm-toolchain != 'default' && inputs.wasm-toolchain }}
+          cargo-cache-key: cargo-wasm-js-${{ matrix.package }}
+          pnpm: true
+
+      - name: Install wasm target
+        shell: bash
+        run: |
+          if [[ "${{ inputs.wasm-toolchain }}" == "default" ]]; then
+            rustup target add wasm32-unknown-unknown
+          else
+            rustup target add wasm32-unknown-unknown --toolchain "${{ inputs.wasm-toolchain }}"
+          fi
+
+      - name: Install wasm-pack
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack
+
+      - name: Build
+        run: make build-wasm-js-${{ matrix.package }}
+
+      - name: Test
+        run: make test-wasm-js-${{ matrix.package }}
 
   # The test jobs rely on this being successful, so we have to do the "if" check
   # at every step if `sbpf-program-packages` isn't specified.
