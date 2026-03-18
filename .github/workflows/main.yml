@@ -76,7 +76,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -99,7 +99,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -117,7 +117,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -138,7 +138,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -165,7 +165,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -202,7 +202,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -233,7 +233,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -271,7 +271,7 @@ jobs:
     steps:
       - name: Git Checkout
         if: ${{ inputs.sbpf-program-packages }}
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         if: ${{ inputs.sbpf-program-packages }}
@@ -308,7 +308,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -336,7 +336,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -359,7 +359,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -396,7 +396,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -429,7 +429,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -449,7 +449,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -476,7 +476,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
@@ -504,7 +504,7 @@ jobs:
       fail-fast: false
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
