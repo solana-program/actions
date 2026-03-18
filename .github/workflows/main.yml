@@ -292,7 +292,7 @@ jobs:
 
       - name: Save Program Builds For Client Jobs
         if: ${{ inputs.sbpf-program-packages }}
-        uses: actions/cache/save@v4
+        uses: actions/cache/save@v5
         with:
           path: ./target/deploy/*.so
           key: ${{ runner.os }}-program-builds-${{ github.sha }}
@@ -318,7 +318,7 @@ jobs:
           cargo-cache-key: cargo-test-${{ matrix.package }}
 
       - name: Restore Program Builds
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ./target/deploy/*.so
           key: ${{ runner.os }}-program-builds-${{ github.sha }}
@@ -369,7 +369,7 @@ jobs:
           cargo-cache-key: cargo-bench-${{ matrix.package }}
 
       - name: Restore Program Builds
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ./target/deploy/*.so
           key: ${{ runner.os }}-program-builds-${{ github.sha }}
@@ -411,7 +411,7 @@ jobs:
           tool: mollusk-svm-cli,toml-cli
 
       - name: Restore Program Builds
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ./target/deploy/*.so
           key: ${{ runner.os }}-program-builds-${{ github.sha }}
@@ -485,7 +485,7 @@ jobs:
           pnpm: true
 
       - name: Restore Program Builds
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ./target/deploy/*.so
           key: ${{ runner.os }}-program-builds-${{ github.sha }}
@@ -513,7 +513,7 @@ jobs:
           pnpm: true
 
       - name: Restore Program Builds
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           path: ./target/deploy/*.so
           key: ${{ runner.os }}-program-builds-${{ github.sha }}
