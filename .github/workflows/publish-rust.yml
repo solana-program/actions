@@ -143,10 +143,17 @@ jobs:
       attestations: write
       artifact-metadata: write
     steps:
+      - uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859  # v3.0.0
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+
       - name: Git Checkout
         uses: actions/checkout@v6
         with:
-          token: ${{ secrets.ANZA_TEAM_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
           fetch-depth: 0 # get the whole history for git-cliff
 
       - name: Setup Environment
@@ -162,9 +169,12 @@ jobs:
           tool: toml-cli,cargo-release@0.25.18
 
       - name: Set Git Author
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
+          git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf https://github.com/
 
       - uses: rust-lang/crates-io-auth-action@bbd81622f20ce9e2dd9622e3218b975523e45bbe  # v1.0.4
         id: auth
