@@ -44,6 +44,11 @@ on:
         description: Create a GitHub release
         required: true
         type: boolean
+      run-semver:
+        description: Run semver checks
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   test:
@@ -129,7 +134,7 @@ jobs:
           cargo release $LEVEL --manifest-path "${{ inputs.package-path }}/Cargo.toml" --no-tag --no-publish --no-push --no-confirm --execute
 
       - name: Check semver
-        if: ${{ steps.has_lib.outputs.has_lib == 'true' }}
+        if: ${{ steps.has_lib.outputs.has_lib == 'true' && inputs.run-semver }}
         run: cargo semver-checks --manifest-path "${{ inputs.package-path }}/Cargo.toml"
 
   publish:
