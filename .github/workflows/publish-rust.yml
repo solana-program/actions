@@ -140,14 +140,25 @@ jobs:
   publish:
     name: Publish Rust Crate
     runs-on: ubuntu-latest
+    environment: prod
     needs: [test, semver]
     permissions:
       contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     steps:
+      - uses: actions/create-github-app-token@f8d387b68d61c58ab83c6c016672934102569859  # v3.0.0
+        id: app-token
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.PRIVATE_KEY }}
+
       - name: Git Checkout
         uses: actions/checkout@v6
         with:
-          token: ${{ secrets.ANZA_TEAM_PAT }}
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
           fetch-depth: 0 # get the whole history for git-cliff
 
       - name: Setup Environment
@@ -162,24 +173,21 @@ jobs:
         with:
           tool: toml-cli,cargo-release@0.25.18
 
-      - name: Ensure CARGO_REGISTRY_TOKEN variable is set
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        if: ${{ env.CARGO_REGISTRY_TOKEN == '' }}
-        run: |
-          echo "The CARGO_REGISTRY_TOKEN secret variable is not set"
-          echo "Go to \"Settings\" -> \"Secrets and variables\" -> \"Actions\" -> \"New repository secret\"."
-          exit 1
-
       - name: Set Git Author
+        env:
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
+          git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf https://github.com/
+
+      - uses: rust-lang/crates-io-auth-action@bbd81622f20ce9e2dd9622e3218b975523e45bbe  # v1.0.4
+        id: auth
 
       - name: Publish Crate
         id: publish
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
         run: |
           if [ "${{ inputs.level }}" == "version" ]; then
             LEVEL=${{ inputs.version }}
@@ -196,6 +204,14 @@ jobs:
           echo "old_git_tag=$(make git-tag-rust-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
           LEVEL=${LEVEL} make publish-rust-${OPTIONS}${{ inputs.target }}
           echo "new_git_tag=$(make git-tag-rust-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
+
+      - name: Generate SLSA provenance
+        if: ${{ inputs.dry-run == false }}
+        uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
+        env:
+          NODE_OPTIONS: "--max-http-header-size=32768"
+        with:
+          subject-path: target/package/*.crate
 
       - name: Generate a changelog
         if: github.event.inputs.create-release == 'true'
