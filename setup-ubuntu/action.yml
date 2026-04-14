@@ -54,11 +54,11 @@ runs:
 
     - name: Setup pnpm
       if: ${{ inputs.pnpm == 'true' }}
-      uses: pnpm/action-setup@v4
+      uses: pnpm/action-setup@v5
 
     - name: Setup Node.js
       if: ${{ inputs.pnpm == 'true' }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: 24
         cache: 'pnpm'
@@ -157,7 +157,7 @@ runs:
 
     - name: Cache Cargo Dependencies
       if: ${{ inputs.cargo-cache-key && !inputs.cargo-cache-fallback-key }}
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cargo/bin/
@@ -170,7 +170,7 @@ runs:
 
     - name: Cache Cargo Dependencies With Fallback
       if: ${{ inputs.cargo-cache-key && inputs.cargo-cache-fallback-key }}
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           ~/.cargo/bin/
@@ -186,7 +186,7 @@ runs:
 
     - name: Cache Local Cargo Dependencies
       if: ${{ inputs.cargo-cache-local-key }}
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: |
           .cargo/bin/
