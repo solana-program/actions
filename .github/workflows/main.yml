@@ -409,6 +409,7 @@ jobs:
         uses: taiki-e/install-action@v2
         with:
           tool: mollusk-svm-cli,toml-cli
+          fallback: cargo-install
 
       - name: Restore Program Builds
         uses: actions/cache/restore@v5
