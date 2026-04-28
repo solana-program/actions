@@ -405,11 +405,15 @@ jobs:
           cli: true
           cargo-cache-key: cargo-regression-${{ matrix.package }}
 
-      - name: Install mollusk and toml
-        uses: taiki-e/install-action@v2
+      - name: Install mollusk
+        uses: taiki-e/cache-cargo-install-action@v3
         with:
-          tool: mollusk-svm-cli,toml-cli
-          fallback: cargo-install
+          tool: mollusk-svm-cli
+
+      - name: Install toml
+        uses: taiki-e/cache-cargo-install-action@v3
+        with:
+          tool: toml-cli
 
       - name: Restore Program Builds
         uses: actions/cache/restore@v5
