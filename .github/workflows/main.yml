@@ -567,7 +567,7 @@ jobs:
         run: make 'check-no-std-core-${{ matrix.package }}'
 
   no_std_alloc_packages:
-    name: Check no-std alloc (${{ matrix.package }})
+    name: Check no-std alloc
     runs-on: ubuntu-latest
     if: ${{ inputs.no-std-alloc-packages }}
     strategy:
