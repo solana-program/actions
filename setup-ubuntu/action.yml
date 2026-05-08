@@ -42,6 +42,10 @@ inputs:
   purge:
     description: Purge unused directories if `true`. Defaults to `false`.
     required: false
+  rust-components:
+    description: Rust components to install for configured toolchains, e.g. `rust-src`.
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -107,12 +111,14 @@ runs:
       uses: dtolnay/rust-toolchain@master
       with:
         toolchain: ${{ env.RUST_TOOLCHAIN_DEFAULT }}
+        components: ${{ inputs.rust-components }}
 
     - name: Install nightly toolchain
       if: ${{ inputs.nightly-toolchain != 'false' }}
       uses: dtolnay/rust-toolchain@master
       with:
         toolchain: ${{ inputs.nightly-toolchain }}
+        components: ${{ inputs.rust-components }}
 
     - name: Install Rustfmt
       if: ${{ inputs.rustfmt-toolchain != 'false' }}
