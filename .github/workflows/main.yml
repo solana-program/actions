@@ -64,12 +64,16 @@ on:
         description: Install Solana specified as a major-minor-patch version, e.g. `"2.3.4"`.
         required: false
         type: string
-      no-std-packages:
-        description: JSON array of no_std checks. Each entry runs `make check-no-std-<package>` with `-Zbuild-std=<build_std>` and optional `--exclude-features <exclude_features>`, e.g. `[{"package":"spl-token-2022-interface","build_std":"alloc,core","exclude_features":"std,serde"}]`.
+      no-std-core-packages:
+        description: no_std core-only packages to check as a JSON-encoded array of strings, e.g. `["packageA", "packageB"]`. Each entry runs `make check-no-std-core-<package>`.
+        required: false
+        type: string
+      no-std-alloc-packages:
+        description: no_std alloc packages to check as a JSON-encoded array of strings, e.g. `["packageA", "packageB"]`. Each entry runs `make check-no-std-alloc-<package>`.
         required: false
         type: string
       no-std-toolchain:
-        description: Nightly toolchain for no_std checks. Required when no-std-packages is provided because `-Zbuild-std` is nightly-only, e.g. "nightly-2025-02-16".
+        description: Nightly toolchain for no_std checks. Required when no-std-core-packages or no-std-alloc-packages is provided because `-Zbuild-std` is nightly-only, e.g. "nightly-2025-02-16".
         required: false
         type: string
 
@@ -534,42 +538,24 @@ jobs:
       - name: Test
         run: make test-py-${{ matrix.package }}
 
-  no_std_packages:
-    name: Check no-std (${{ matrix.package }})
+  no_std_core_packages:
+    name: Check no-std core (${{ matrix.package }})
     runs-on: ubuntu-latest
-    if: ${{ inputs.no-std-packages }}
+    if: ${{ inputs.no-std-core-packages }}
     strategy:
       matrix:
-        include: ${{ fromJson(inputs.no-std-packages) }}
+        package: ${{ fromJson(inputs.no-std-core-packages) }}
       fail-fast: false
     steps:
       - name: Git Checkout
         uses: actions/checkout@v6
-
-      - name: Validate inputs
-        shell: bash
-        env:
-          NO_STD_TOOLCHAIN: ${{ inputs.no-std-toolchain }}
-        run: |
-          if [ -z "$NO_STD_TOOLCHAIN" ]; then
-            echo "no-std-toolchain is required when no-std-packages is provided"
-            exit 1
-          fi
-          if [ -z '${{ matrix.package }}' ]; then
-            echo "no-std-packages entries must include package"
-            exit 1
-          fi
-          if [ -z '${{ matrix.build_std }}' ]; then
-            echo "no-std-packages entries must include build_std"
-            exit 1
-          fi
 
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
         with:
           nightly-toolchain: ${{ inputs.no-std-toolchain }}
           rust-components: rust-src
-          cargo-cache-key: cargo-no-std-${{ matrix.package }}
+          cargo-cache-key: cargo-no-std-core-${{ matrix.package }}
 
       - name: Install cargo-hack
         uses: taiki-e/install-action@v2
@@ -578,9 +564,32 @@ jobs:
 
       - name: Check no-std
         shell: bash
-        run: |
-          args='-Zbuild-std=${{ matrix.build_std }}'
-          if [ -n '${{ matrix.exclude_features }}' ]; then
-            args="$args --exclude-features ${{ matrix.exclude_features }}"
-          fi
-          make 'check-no-std-${{ matrix.package }}' ARGS="$args"
+        run: make 'check-no-std-core-${{ matrix.package }}'
+
+  no_std_alloc_packages:
+    name: Check no-std alloc (${{ matrix.package }})
+    runs-on: ubuntu-latest
+    if: ${{ inputs.no-std-alloc-packages }}
+    strategy:
+      matrix:
+        package: ${{ fromJson(inputs.no-std-alloc-packages) }}
+      fail-fast: false
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Environment
+        uses: solana-program/actions/setup-ubuntu@main
+        with:
+          nightly-toolchain: ${{ inputs.no-std-toolchain }}
+          rust-components: rust-src
+          cargo-cache-key: cargo-no-std-alloc-${{ matrix.package }}
+
+      - name: Install cargo-hack
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-hack
+
+      - name: Check no-std
+        shell: bash
+        run: make 'check-no-std-alloc-${{ matrix.package }}'
