@@ -56,6 +56,11 @@ runs:
         RUST_TOOLCHAIN_DEFAULT=$(grep "channel =" ./rust-toolchain.toml | sed "s/channel = \"\(.*\)\"/\1/")
         echo "RUST_TOOLCHAIN_DEFAULT=$RUST_TOOLCHAIN_DEFAULT" >> "$GITHUB_ENV"
 
+    - name: Install toml-cli
+      uses: taiki-e/install-action@v2
+      with:
+        tool: toml-cli
+
     - name: Setup pnpm
       if: ${{ inputs.pnpm == 'true' }}
       uses: pnpm/action-setup@v5
