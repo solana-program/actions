@@ -65,6 +65,30 @@ jobs:
       - name: Test
         run: make test-js-${{ inputs.target }}
 
+      - name: Write check summary
+        shell: bash
+        env:
+          GH_REPO: ${{ github.repository }}
+          GH_SHA: ${{ github.sha }}
+          TARGET: ${{ inputs.target }}
+          BUMP_LEVEL: ${{ inputs.level }}
+          NPM_TAG: ${{ inputs.tag }}
+          PACKAGE_PATH: ${{ inputs.package-path }}
+          CREATE_RELEASE: ${{ inputs.create-release }}
+        run: |
+          CURRENT_TAG=$(make "git-tag-js-${TARGET}")
+          SHORT_SHA=${GH_SHA:0:7}
+          {
+            echo "## Check summary"
+            echo ""
+            echo "- **Tag (current):** \`${CURRENT_TAG}\`"
+            echo "- **Bump level:** \`${BUMP_LEVEL}\`"
+            echo "- **NPM dist-tag:** \`${NPM_TAG}\`"
+            echo "- **Package path:** \`${PACKAGE_PATH}\`"
+            echo "- **Create release:** \`${CREATE_RELEASE}\`"
+            echo "- **Ref:** ${GH_SHA} ([${GH_REPO}@${SHORT_SHA}](https://github.com/${GH_REPO}/commit/${GH_SHA}))"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
   publish:
     name: Publish package
     runs-on: ubuntu-latest
