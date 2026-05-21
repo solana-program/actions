@@ -1,0 +1,95 @@
+name: Workflow Inputs E2E
+
+# End-to-end smoke test for the workflow-inputs action.
+#
+# Declares its own workflow_dispatch inputs purely as test fixtures — the
+# action runs against this very workflow file and renders a summary, which
+# the assertion step then verifies.
+#
+# Triggers on push and pull_request (scoped to workflow-inputs/ changes) so
+# every code change gets an end-to-end smoke test, and on workflow_dispatch
+# so maintainers can rerun manually.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "workflow-inputs/**"
+      - ".github/workflows/workflow-inputs-e2e.yml"
+  pull_request:
+    paths:
+      - "workflow-inputs/**"
+      - ".github/workflows/workflow-inputs-e2e.yml"
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Where the e2e step pretends to deploy.
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
+      dry-run:
+        description: Skip the (pretend) deploy.
+        type: boolean
+        default: true
+      version:
+        description: Version label.
+        type: string
+        default: 0.0.0-e2e
+      github_token:
+        description: Should be redacted by the default mask pattern.
+        type: string
+        default: ghp_thisisnotreal
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    name: End-to-end smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Vite+
+        uses: voidzero-dev/setup-vp@v1
+
+      - name: Install dependencies
+        working-directory: workflow-inputs
+        run: vp install
+
+      # Rebuild the bundle from source rather than trusting the committed
+      # dist/. Decouples this workflow from workflow-inputs-ci.yml: even if
+      # dist/ is stale on main, this still tests the current source code.
+      - name: Build action bundle
+        working-directory: workflow-inputs
+        run: vp pack
+
+      - name: Run the action against this workflow
+        id: action
+        uses: ./workflow-inputs
+
+      - name: Verify the rendered summary
+        env:
+          SUMMARY: ${{ steps.action.outputs.summary }}
+        run: |
+          set -euo pipefail
+          # Each declared input should appear as a row.
+          for name in environment dry-run version github_token; do
+            if ! printf '%s' "$SUMMARY" | grep -qE "^\| ${name} \|"; then
+              echo "::error::Expected the summary to contain a row for '${name}'."
+              printf '%s' "$SUMMARY"
+              exit 1
+            fi
+          done
+          # The fake token must be masked.
+          if printf '%s' "$SUMMARY" | grep -q 'ghp_thisisnotreal'; then
+            echo "::error::Expected the github_token value to be masked."
+            exit 1
+          fi
+          if ! printf '%s' "$SUMMARY" | grep -q '\*\*\*'; then
+            echo "::error::Expected the masked placeholder (***) to appear."
+            exit 1
+          fi
+          echo "Summary verified."

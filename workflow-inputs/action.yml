@@ -1,0 +1,42 @@
+name: "Workflow Inputs Summary"
+description: >-
+  Render the inputs of the current workflow run as a markdown table in the
+  GitHub Actions job summary. Useful for `workflow_dispatch` runs so anyone
+  reviewing the run later can see what inputs triggered it.
+author: "Loris Leiva"
+branding:
+  icon: "list"
+  color: "blue"
+
+inputs:
+  title:
+    description: "Heading for the summary section."
+    required: false
+    default: "Workflow inputs"
+  inputs-json:
+    description: >-
+      Optional JSON object of inputs. When provided, this is used in place of
+      github.event.inputs. See the README for usage with toJSON(inputs).
+    required: false
+    default: ""
+  mask-patterns:
+    description: >-
+      Comma-separated regex patterns. Input keys matching any pattern have
+      their values redacted in the summary. Prefix a pattern with `(?i)` for
+      case-insensitive matching.
+    required: false
+    default: "(?i)(secret|token|password|api[_-]?key)"
+  show-defaults:
+    description: >-
+      When true, inputs falling back to their declared default are tagged with
+      `(default)` in the summary.
+    required: false
+    default: "true"
+
+outputs:
+  summary:
+    description: "The rendered markdown summary, also written to $GITHUB_STEP_SUMMARY."
+
+runs:
+  using: "node24"
+  main: "dist/index.js"
