@@ -22,11 +22,11 @@ importers:
         specifier: ^4.0.9
         version: 4.0.9
       '@types/node':
-        specifier: ^20.14.0
-        version: 20.19.39
+        specifier: ^25.9.1
+        version: 25.9.1
       vite-plus:
         specifier: ^0.1.20
-        version: 0.1.20(@types/node@20.19.39)(vite@8.0.11(@types/node@20.19.39))
+        version: 0.1.20(@types/node@25.9.1)(vite@8.0.11(@types/node@25.9.1))
 
 packages:
 
@@ -512,8 +512,8 @@ packages:
   '@types/js-yaml@4.0.9':
     resolution: {integrity: sha512-k4MGaQl5TGo/iipqb2UDG2UwjXziSWkh0uysQelTlJpX1qGlpUZYm8PnO4DxG1qBomtJUdYJ6qR6xdIah10JLg==}
 
-  '@types/node@20.19.39':
-    resolution: {integrity: sha512-orrrD74MBUyK8jOAD/r0+lfa1I2MO6I+vAkmAWzMYbCcgrN4lCrmK52gRFQq/JRxfYPfonkr4b0jcY7Olqdqbw==}
+  '@types/node@25.9.1':
+    resolution: {integrity: sha512-xfrlY7UD5rMJk3ZVJP8BNzS28J36YJg+xp+LPXV1TdWxr8uMH5A860QNxYDGQe/ylDSgjxE52Q9VnO7p75tJxg==}
 
   '@voidzero-dev/vite-plus-core@0.1.20':
     resolution: {integrity: sha512-4KmzRfzwTeG3JuvDijrdqWusSgRvLMKDPrVsDdtbDVVjEMq0VnM8lSH+Nvepd6Pg+SuSVUP212OIfH/3Yn1bfA==}
@@ -823,6 +823,10 @@ packages:
     resolution: {integrity: sha512-SoSL4+OSEtR99LHFZQiJLkT59C5B1amGO1NzTwj7TT1qCUgUO6hxOvzkOYxD+vMrXBM3XJIKzokoERdqQq/Zmg==}
     engines: {node: ^10 || ^12 || >=14}
 
+  postcss@8.5.15:
+    resolution: {integrity: sha512-FfR8sjd4em2T6fb3I2MwAJU7HWVMr9zba+enmQeeWFfCbm+UOC/0X4DS8XtpUTMwWMGbjKYP7xjfNekzyGmB3A==}
+    engines: {node: ^10 || ^12 || >=14}
+
   rolldown@1.0.0-rc.18:
     resolution: {integrity: sha512-phmyKBpuBdRYDf4hgyynGAYn/rDDe+iZXKVJ7WX5b1zQzpLkP5oJRPGsfJuHdzPMlyyEO/4sPW6yfSx2gf7lVg==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -865,8 +869,8 @@ packages:
     resolution: {integrity: sha512-1h/Lnq9yajKY2PEbBadPXj3VxsDDu844OnaAo52UVmIzIvwwtBPIuNvkjuzBlTWpfJyUbG3ez0KSBibQkj4ojg==}
     engines: {node: '>=0.6.11 <=0.7.0 || >=0.7.3'}
 
-  undici-types@6.21.0:
-    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+  undici-types@7.24.6:
+    resolution: {integrity: sha512-WRNW+sJgj5OBN4/0JpHFqtqzhpbnV0GuB+OozA9gCL7a993SmU+1JBZCzLNxYsbMfIeDL+lTsphD5jN5N+n0zg==}
 
   undici@5.29.0:
     resolution: {integrity: sha512-raqeBD6NQK4SkWhQzeYKd1KmIG6dllBOTt55Rmkt4HtI9mwdWtJljnrXjAFUBLTSN67HWrOIZ3EPF4kjUw80Bg==}
@@ -1256,18 +1260,18 @@ snapshots:
 
   '@types/js-yaml@4.0.9': {}
 
-  '@types/node@20.19.39':
+  '@types/node@25.9.1':
     dependencies:
-      undici-types: 6.21.0
+      undici-types: 7.24.6
 
-  '@voidzero-dev/vite-plus-core@0.1.20(@types/node@20.19.39)':
+  '@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.9.1)':
     dependencies:
       '@oxc-project/runtime': 0.127.0
       '@oxc-project/types': 0.127.0
       lightningcss: 1.32.0
       postcss: 8.5.14
     optionalDependencies:
-      '@types/node': 20.19.39
+      '@types/node': 25.9.1
       fsevents: 2.3.3
 
   '@voidzero-dev/vite-plus-darwin-arm64@0.1.20':
@@ -1288,11 +1292,11 @@ snapshots:
   '@voidzero-dev/vite-plus-linux-x64-musl@0.1.20':
     optional: true
 
-  '@voidzero-dev/vite-plus-test@0.1.20(@types/node@20.19.39)(vite@8.0.11(@types/node@20.19.39))':
+  '@voidzero-dev/vite-plus-test@0.1.20(@types/node@25.9.1)(vite@8.0.11(@types/node@25.9.1))':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@types/chai': 5.2.3
-      '@voidzero-dev/vite-plus-core': 0.1.20(@types/node@20.19.39)
+      '@voidzero-dev/vite-plus-core': 0.1.20(@types/node@25.9.1)
       es-module-lexer: 1.7.0
       obug: 2.1.1
       pixelmatch: 7.2.0
@@ -1302,10 +1306,10 @@ snapshots:
       tinybench: 2.9.0
       tinyexec: 1.1.2
       tinyglobby: 0.2.16
-      vite: 8.0.11(@types/node@20.19.39)
+      vite: 8.0.11(@types/node@25.9.1)
       ws: 8.20.0
     optionalDependencies:
-      '@types/node': 20.19.39
+      '@types/node': 25.9.1
     transitivePeerDependencies:
       - '@arethetypeswrong/core'
       - '@tsdown/css'
@@ -1487,6 +1491,12 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
+  postcss@8.5.15:
+    dependencies:
+      nanoid: 3.3.12
+      picocolors: 1.1.1
+      source-map-js: 1.2.1
+
   rolldown@1.0.0-rc.18:
     dependencies:
       '@oxc-project/types': 0.128.0
@@ -1536,7 +1546,7 @@ snapshots:
 
   tunnel@0.0.6: {}
 
-  undici-types@6.21.0: {}
+  undici-types@7.24.6: {}
 
   undici@5.29.0:
     dependencies:
@@ -1544,11 +1554,11 @@ snapshots:
 
   universal-user-agent@6.0.1: {}
 
-  vite-plus@0.1.20(@types/node@20.19.39)(vite@8.0.11(@types/node@20.19.39)):
+  vite-plus@0.1.20(@types/node@25.9.1)(vite@8.0.11(@types/node@25.9.1)):
     dependencies:
       '@oxc-project/types': 0.127.0
-      '@voidzero-dev/vite-plus-core': 0.1.20(@types/node@20.19.39)
-      '@voidzero-dev/vite-plus-test': 0.1.20(@types/node@20.19.39)(vite@8.0.11(@types/node@20.19.39))
+      '@voidzero-dev/vite-plus-core': 0.1.20(@types/node@25.9.1)
+      '@voidzero-dev/vite-plus-test': 0.1.20(@types/node@25.9.1)(vite@8.0.11(@types/node@25.9.1))
       oxfmt: 0.46.0
       oxlint: 1.61.0(oxlint-tsgolint@0.22.0)
       oxlint-tsgolint: 0.22.0
@@ -1591,15 +1601,15 @@ snapshots:
       - vite
       - yaml
 
-  vite@8.0.11(@types/node@20.19.39):
+  vite@8.0.11(@types/node@25.9.1):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
-      postcss: 8.5.14
+      postcss: 8.5.15
       rolldown: 1.0.0-rc.18
       tinyglobby: 0.2.16
     optionalDependencies:
-      '@types/node': 20.19.39
+      '@types/node': 25.9.1
       fsevents: 2.3.3
 
   wrappy@1.0.2: {}
