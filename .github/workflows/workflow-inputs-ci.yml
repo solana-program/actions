@@ -1,0 +1,48 @@
+name: Workflow Inputs CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "workflow-inputs/**"
+      - ".github/workflows/workflow-inputs-ci.yml"
+  pull_request:
+    paths:
+      - "workflow-inputs/**"
+      - ".github/workflows/workflow-inputs-ci.yml"
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: workflow-inputs
+
+jobs:
+  build:
+    name: Build & test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up Vite+
+        uses: voidzero-dev/setup-vp@v1
+
+      - name: Install dependencies
+        run: vp install
+
+      - name: Format, lint, type-check
+        run: vp check
+
+      - name: Run tests
+        run: vp test run
+
+      - name: Build action bundle
+        run: vp pack
+
+      - name: Verify dist/ is up to date
+        run: |
+          if ! git diff --exit-code dist/; then
+            echo "::error::The committed workflow-inputs/dist/ is out of date. Run 'vp pack' inside workflow-inputs/ and commit the result."
+            exit 1
+          fi

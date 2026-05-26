@@ -1,0 +1,8 @@
+node_modules/
+.vite-plus/
+*.tsbuildinfo
+
+# Override the global gitignore which excludes dist/. JS GitHub Actions
+# require the bundled output to be committed so the runner can execute it.
+!dist/
+!dist/**
