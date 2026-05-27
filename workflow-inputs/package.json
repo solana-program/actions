@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^20.14.0",
+    "@types/node": "^25.9.1",
     "vite-plus": "^0.1.20"
   },
   "engines": {
