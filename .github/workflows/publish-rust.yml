@@ -227,6 +227,10 @@ jobs:
           LEVEL=${LEVEL} make publish-rust-${OPTIONS}${{ inputs.target }}
           echo "new_git_tag=$(make git-tag-rust-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
 
+      - name: Package crate for attestation
+        if: ${{ inputs.dry-run == false }}
+        run: cargo package --no-verify --manifest-path "${{ inputs.package-path }}/Cargo.toml"
+
       - name: Generate SLSA provenance
         if: ${{ inputs.dry-run == false }}
         uses: actions/attest@59d89421af93a897026c735860bf21b6eb4f7b26  # v4.1.0
