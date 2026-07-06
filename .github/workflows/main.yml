@@ -35,7 +35,7 @@ on:
         description: The Rust toolchain for wasm builds, e.g. "nightly-2025-02-16"
         required: false
         type: string
-        default: 'default'
+        default: "default"
       wasm-js-packages:
         description: Rust packages to build with wasm-pack, e.g. `["package", "package2"]`.
         required: false
@@ -76,6 +76,11 @@ on:
         description: Nightly toolchain for no_std checks. Required when no-std-core-packages or no-std-alloc-packages is provided because `-Zbuild-std` is nightly-only, e.g. "nightly-2025-02-16".
         required: false
         type: string
+      generate-clients:
+        description: Whether to run the generate_clients job.
+        required: false
+        type: boolean
+        default: true
 
 jobs:
   format_and_lint_js:
@@ -464,6 +469,7 @@ jobs:
   generate_clients:
     name: Check Client Generation
     runs-on: ubuntu-latest
+    if: ${{ inputs.generate-clients }}
     steps:
       - name: Git Checkout
         uses: actions/checkout@v7
