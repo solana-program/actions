@@ -22,11 +22,11 @@ importers:
         specifier: ^4.0.9
         version: 4.0.9
       '@types/node':
-        specifier: ^25.9.1
-        version: 25.9.1
+        specifier: ^25.9.2
+        version: 25.9.2
       vite-plus:
         specifier: ^0.1.20
-        version: 0.1.20(@types/node@25.9.1)(vite@8.0.11(@types/node@25.9.1))
+        version: 0.1.20(@types/node@25.9.2)(vite@8.0.11(@types/node@25.9.2))
 
 packages:
 
@@ -512,8 +512,8 @@ packages:
   '@types/js-yaml@4.0.9':
     resolution: {integrity: sha512-k4MGaQl5TGo/iipqb2UDG2UwjXziSWkh0uysQelTlJpX1qGlpUZYm8PnO4DxG1qBomtJUdYJ6qR6xdIah10JLg==}
 
-  '@types/node@25.9.1':
-    resolution: {integrity: sha512-xfrlY7UD5rMJk3ZVJP8BNzS28J36YJg+xp+LPXV1TdWxr8uMH5A860QNxYDGQe/ylDSgjxE52Q9VnO7p75tJxg==}
+  '@types/node@25.9.2':
+    resolution: {integrity: sha512-G05zqtJhcDLb8uslf5EjCxXg9G1KQxiV8OS0R26IC//Eoyitzqe8z37I7cqvnZlrlSfgocQRfSn/AHBZJJFyGw==}
 
   '@voidzero-dev/vite-plus-core@0.1.20':
     resolution: {integrity: sha512-4KmzRfzwTeG3JuvDijrdqWusSgRvLMKDPrVsDdtbDVVjEMq0VnM8lSH+Nvepd6Pg+SuSVUP212OIfH/3Yn1bfA==}
@@ -852,6 +852,10 @@ packages:
 
   tinyglobby@0.2.16:
     resolution: {integrity: sha512-pn99VhoACYR8nFHhxqix+uvsbXineAasWm5ojXoN8xEwK5Kd3/TrhNn1wByuD52UxWRLy8pu+kRMniEi6Eq9Zg==}
+    engines: {node: '>=12.0.0'}
+
+  tinyglobby@0.2.17:
+    resolution: {integrity: sha512-wXR/dYpcqKmfWpEdZjiKJOwCNFndD0DMnrW/cYjVGttEkBfVgcLFHoNrlj47mjOVic9yyNu65alsgF4NQyTa2g==}
     engines: {node: '>=12.0.0'}
 
   tinypool@2.1.0:
@@ -1260,18 +1264,18 @@ snapshots:
 
   '@types/js-yaml@4.0.9': {}
 
-  '@types/node@25.9.1':
+  '@types/node@25.9.2':
     dependencies:
       undici-types: 7.24.6
 
-  '@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.9.1)':
+  '@voidzero-dev/vite-plus-core@0.1.20(@types/node@25.9.2)':
     dependencies:
       '@oxc-project/runtime': 0.127.0
       '@oxc-project/types': 0.127.0
       lightningcss: 1.32.0
       postcss: 8.5.14
     optionalDependencies:
-      '@types/node': 25.9.1
+      '@types/node': 25.9.2
       fsevents: 2.3.3
 
   '@voidzero-dev/vite-plus-darwin-arm64@0.1.20':
@@ -1292,11 +1296,11 @@ snapshots:
   '@voidzero-dev/vite-plus-linux-x64-musl@0.1.20':
     optional: true
 
-  '@voidzero-dev/vite-plus-test@0.1.20(@types/node@25.9.1)(vite@8.0.11(@types/node@25.9.1))':
+  '@voidzero-dev/vite-plus-test@0.1.20(@types/node@25.9.2)(vite@8.0.11(@types/node@25.9.2))':
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@types/chai': 5.2.3
-      '@voidzero-dev/vite-plus-core': 0.1.20(@types/node@25.9.1)
+      '@voidzero-dev/vite-plus-core': 0.1.20(@types/node@25.9.2)
       es-module-lexer: 1.7.0
       obug: 2.1.1
       pixelmatch: 7.2.0
@@ -1306,10 +1310,10 @@ snapshots:
       tinybench: 2.9.0
       tinyexec: 1.1.2
       tinyglobby: 0.2.16
-      vite: 8.0.11(@types/node@25.9.1)
+      vite: 8.0.11(@types/node@25.9.2)
       ws: 8.20.0
     optionalDependencies:
-      '@types/node': 25.9.1
+      '@types/node': 25.9.2
     transitivePeerDependencies:
       - '@arethetypeswrong/core'
       - '@tsdown/css'
@@ -1537,6 +1541,11 @@ snapshots:
       fdir: 6.5.0(picomatch@4.0.4)
       picomatch: 4.0.4
 
+  tinyglobby@0.2.17:
+    dependencies:
+      fdir: 6.5.0(picomatch@4.0.4)
+      picomatch: 4.0.4
+
   tinypool@2.1.0: {}
 
   totalist@3.0.1: {}
@@ -1554,11 +1563,11 @@ snapshots:
 
   universal-user-agent@6.0.1: {}
 
-  vite-plus@0.1.20(@types/node@25.9.1)(vite@8.0.11(@types/node@25.9.1)):
+  vite-plus@0.1.20(@types/node@25.9.2)(vite@8.0.11(@types/node@25.9.2)):
     dependencies:
       '@oxc-project/types': 0.127.0
-      '@voidzero-dev/vite-plus-core': 0.1.20(@types/node@25.9.1)
-      '@voidzero-dev/vite-plus-test': 0.1.20(@types/node@25.9.1)(vite@8.0.11(@types/node@25.9.1))
+      '@voidzero-dev/vite-plus-core': 0.1.20(@types/node@25.9.2)
+      '@voidzero-dev/vite-plus-test': 0.1.20(@types/node@25.9.2)(vite@8.0.11(@types/node@25.9.2))
       oxfmt: 0.46.0
       oxlint: 1.61.0(oxlint-tsgolint@0.22.0)
       oxlint-tsgolint: 0.22.0
@@ -1601,15 +1610,15 @@ snapshots:
       - vite
       - yaml
 
-  vite@8.0.11(@types/node@25.9.1):
+  vite@8.0.11(@types/node@25.9.2):
     dependencies:
       lightningcss: 1.32.0
       picomatch: 4.0.4
       postcss: 8.5.15
       rolldown: 1.0.0-rc.18
-      tinyglobby: 0.2.16
+      tinyglobby: 0.2.17
     optionalDependencies:
-      '@types/node': 25.9.1
+      '@types/node': 25.9.2
       fsevents: 2.3.3
 
   wrappy@1.0.2: {}
