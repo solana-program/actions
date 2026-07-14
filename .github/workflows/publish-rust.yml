@@ -66,8 +66,7 @@ jobs:
           solana: ${{ inputs.solana-cli-version }}
           cli: true
           purge: true
-          cargo-cache-key: cargo-test-publish-${{ inputs.package-path }}
-          cargo-cache-fallback-key: cargo-test-publish
+          cache: false
 
       - name: Format
         run: make format-check-${{ inputs.target }}
@@ -97,8 +96,7 @@ jobs:
         uses: solana-program/actions/setup-ubuntu@main
         with:
           cli: true
-          cargo-cache-key: cargo-publish-semver-${{ inputs.package-path }}
-          cargo-cache-fallback-key: cargo-publish-semver
+          cache: false
 
       - name: Install cargo-semver-checks
         uses: taiki-e/install-action@v2
@@ -187,8 +185,7 @@ jobs:
         uses: solana-program/actions/setup-ubuntu@main
         with:
           cli: true
-          cargo-cache-key: cargo-publish-${{ inputs.package-path }}
-          cargo-cache-fallback-key: cargo-publish
+          cache: false
 
       - name: Install cargo-release and toml-cli
         uses: taiki-e/install-action@v2

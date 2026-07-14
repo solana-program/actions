@@ -45,8 +45,7 @@ jobs:
         with:
           pnpm: true
           solana: ${{ inputs.solana-cli-version }}
-          cargo-cache-key: cargo-publish-js-test-${{ inputs.package-path }}
-          cargo-cache-fallback-key: cargo-publish-js-test
+          cache: false
 
       - name: Format
         run: make format-check-js-${{ inputs.target }}
@@ -115,6 +114,7 @@ jobs:
         uses: solana-program/actions/setup-ubuntu@main
         with:
           pnpm: true
+          cache: false
 
       - name: Set Git Author
         env:
