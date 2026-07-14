@@ -69,21 +69,29 @@ jobs:
           cache: false
 
       - name: Format
-        run: make format-check-${{ inputs.target }}
+        env:
+          TARGET: ${{ inputs.target }}
+        run: make "format-check-${TARGET}"
 
       - name: Clippy
-        run: make clippy-${{ inputs.target }}
+        env:
+          TARGET: ${{ inputs.target }}
+        run: make "clippy-${TARGET}"
 
       - name: Build programs
         shell: bash
+        env:
+          SBPF_PROGRAM_PACKAGES: ${{ inputs.sbpf-program-packages }}
         run: |
-          for program in ${{ inputs.sbpf-program-packages }}
+          for program in $SBPF_PROGRAM_PACKAGES
           do
-            make build-sbf-$program
+            make "build-sbf-${program}"
           done
 
       - name: Test
-        run: make test-${{ inputs.target }}
+        env:
+          TARGET: ${{ inputs.target }}
+        run: make "test-${TARGET}"
 
   semver:
     name: Check Semver
@@ -106,9 +114,11 @@ jobs:
       - name: Check if crate has a lib target
         id: has_lib
         shell: bash
+        env:
+          PACKAGE_PATH: ${{ inputs.package-path }}
         run: |
           set +e # toml crashes the whole shell if it fails to find the key
-          result=$(toml get "${{ inputs.package-path }}/Cargo.toml" lib.crate-type)
+          result=$(toml get "${PACKAGE_PATH}/Cargo.toml" lib.crate-type)
           if [[ "$result" == *"lib"* ]]; then
             echo "has_lib=true" >> "$GITHUB_OUTPUT"
           else
@@ -121,13 +131,15 @@ jobs:
           git config --global user.name "github-actions[bot]"
 
       - name: Set Version
+        env:
+          LEVEL: ${{ inputs.level }}
+          VERSION: ${{ inputs.version }}
+          PACKAGE_PATH: ${{ inputs.package-path }}
         run: |
-          if [ "${{ inputs.level }}" == "version" ]; then
-            LEVEL=${{ inputs.version }}
-          else
-            LEVEL=${{ inputs.level }}
+          if [ "$LEVEL" == "version" ]; then
+            LEVEL="$VERSION"
           fi
-          cargo release $LEVEL --manifest-path "${{ inputs.package-path }}/Cargo.toml" --no-tag --no-publish --no-push --no-confirm --execute
+          cargo release "$LEVEL" --manifest-path "${PACKAGE_PATH}/Cargo.toml" --no-tag --no-publish --no-push --no-confirm --execute
 
       - name: Write check summary
         shell: bash
@@ -155,7 +167,9 @@ jobs:
 
       - name: Check semver
         if: ${{ steps.has_lib.outputs.has_lib == 'true' && inputs.run-semver }}
-        run: cargo semver-checks --manifest-path "${{ inputs.package-path }}/Cargo.toml"
+        env:
+          PACKAGE_PATH: ${{ inputs.package-path }}
+        run: cargo semver-checks --manifest-path "${PACKAGE_PATH}/Cargo.toml"
 
   publish:
     name: Publish Rust Crate
@@ -207,26 +221,30 @@ jobs:
         id: publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+          LEVEL: ${{ inputs.level }}
+          VERSION: ${{ inputs.version }}
+          DRY_RUN: ${{ inputs.dry-run }}
+          TARGET: ${{ inputs.target }}
         run: |
-          if [ "${{ inputs.level }}" == "version" ]; then
-            LEVEL=${{ inputs.version }}
-          else
-            LEVEL=${{ inputs.level }}
+          if [ "$LEVEL" == "version" ]; then
+            LEVEL="$VERSION"
           fi
 
-          if [ "${{ inputs.dry-run }}" == "true" ]; then
+          if [ "$DRY_RUN" == "true" ]; then
             OPTIONS="dry-run-"
           else
             OPTIONS=""
           fi
 
-          echo "old_git_tag=$(make git-tag-rust-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
-          LEVEL=${LEVEL} make publish-rust-${OPTIONS}${{ inputs.target }}
-          echo "new_git_tag=$(make git-tag-rust-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
+          echo "old_git_tag=$(make "git-tag-rust-${TARGET}")" >> "${GITHUB_OUTPUT}"
+          LEVEL="$LEVEL" make "publish-rust-${OPTIONS}${TARGET}"
+          echo "new_git_tag=$(make "git-tag-rust-${TARGET}")" >> "${GITHUB_OUTPUT}"
 
       - name: Package crate for attestation
         if: ${{ inputs.dry-run == false }}
-        run: cargo package --no-verify --manifest-path "${{ inputs.package-path }}/Cargo.toml"
+        env:
+          PACKAGE_PATH: ${{ inputs.package-path }}
+        run: cargo package --no-verify --manifest-path "${PACKAGE_PATH}/Cargo.toml"
 
       - name: Generate SLSA provenance
         if: ${{ inputs.dry-run == false }}
