@@ -239,8 +239,20 @@ jobs:
         with:
           subject-path: target/package/*.crate
 
+      - name: Check previous tag exists
+        id: prev_tag
+        shell: bash
+        run: |
+          TAG="${{ steps.publish.outputs.old_git_tag }}"
+          if git rev-parse --verify --quiet "refs/tags/${TAG}" >/dev/null; then
+            echo "exists=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "::warning::Previous tag '${TAG}' not found in git history; skipping changelog and GitHub release for this run."
+            echo "exists=false" >> "${GITHUB_OUTPUT}"
+          fi
+
       - name: Generate a changelog
-        if: github.event.inputs.create-release == 'true'
+        if: github.event.inputs.create-release == 'true' && steps.prev_tag.outputs.exists == 'true'
         uses: orhun/git-cliff-action@v4
         with:
           config: "scripts/cliff.toml"
@@ -250,7 +262,7 @@ jobs:
           GITHUB_REPO: ${{ github.repository }}
 
       - name: Create GitHub release
-        if: github.event.inputs.create-release == 'true' && github.event.inputs.dry-run != 'true'
+        if: github.event.inputs.create-release == 'true' && github.event.inputs.dry-run != 'true' && steps.prev_tag.outputs.exists == 'true'
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.publish.outputs.new_git_tag }}
