@@ -40,6 +40,25 @@ jobs:
       - name: Git Checkout
         uses: actions/checkout@v7
 
+      - name: Ensure branch is up to date
+        shell: bash
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          git fetch --quiet origin "${BRANCH}"
+          HEAD_SHA=$(git rev-parse HEAD)
+          REMOTE_SHA=$(git rev-parse "origin/${BRANCH}")
+          if [ "${HEAD_SHA}" != "${REMOTE_SHA}" ] || [ "${GITHUB_SHA}" != "${REMOTE_SHA}" ]; then
+            {
+              echo "::error::Refusing to publish: the run is not on the latest commit of '${BRANCH}'."
+              echo "  dispatched sha : ${GITHUB_SHA}"
+              echo "  checked-out sha: ${HEAD_SHA}"
+              echo "  origin tip     : ${REMOTE_SHA}"
+              echo "Re-run the publish workflow from the current tip of '${BRANCH}'."
+            } >&2
+            exit 1
+          fi
+          echo "Up to date with origin/${BRANCH} at ${REMOTE_SHA}."
+
       - name: Setup Environment
         uses: solana-program/actions/setup-ubuntu@main
         with:
@@ -123,6 +142,30 @@ jobs:
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
           git config --global url."https://x-access-token:${GITHUB_TOKEN}@github.com/".insteadOf https://github.com/
+
+      # Guard the irreversible `npm publish` below: if `main` advanced after this
+      # run was dispatched (e.g. a PR merged in the meantime), the checked-out
+      # tree no longer matches what the `test` job validated. Abort before
+      # publishing so the run can be re-dispatched from the current tip, rather
+      # than leaving npm and git in a split state.
+      - name: Ensure branch is up to date
+        shell: bash
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          git fetch --quiet origin "${BRANCH}"
+          HEAD_SHA=$(git rev-parse HEAD)
+          REMOTE_SHA=$(git rev-parse "origin/${BRANCH}")
+          if [ "${HEAD_SHA}" != "${REMOTE_SHA}" ] || [ "${GITHUB_SHA}" != "${REMOTE_SHA}" ]; then
+            {
+              echo "::error::Refusing to publish: the run is not on the latest commit of '${BRANCH}'."
+              echo "  dispatched sha : ${GITHUB_SHA}"
+              echo "  checked-out sha: ${HEAD_SHA}"
+              echo "  origin tip     : ${REMOTE_SHA}"
+              echo "Re-run the publish workflow from the current tip of '${BRANCH}'."
+            } >&2
+            exit 1
+          fi
+          echo "Up to date with origin/${BRANCH} at ${REMOTE_SHA}."
 
       - name: Publish
         id: publish
