@@ -264,8 +264,20 @@ jobs:
         with:
           subject-path: target/package/*.crate
 
+      - name: Check previous tag exists
+        id: prev_tag
+        shell: bash
+        run: |
+          TAG="${{ steps.publish.outputs.old_git_tag }}"
+          if git rev-parse --verify --quiet "refs/tags/${TAG}" >/dev/null; then
+            echo "exists=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "::warning::Previous tag '${TAG}' not found in git history; skipping changelog generation and creating the release without notes. To add notes, run \`git-cliff -c scripts/cliff.toml <SOURCE_REF>..${{ steps.publish.outputs.new_git_tag }} --include-path \"${{ inputs.package-path }}/**\" --github-repo ${{ github.repository }}\` with a suitable source ref, then paste the output into the new GitHub release."
+            echo "exists=false" >> "${GITHUB_OUTPUT}"
+          fi
+
       - name: Generate a changelog
-        if: github.event.inputs.create-release == 'true'
+        if: github.event.inputs.create-release == 'true' && steps.prev_tag.outputs.exists == 'true'
         uses: orhun/git-cliff-action@v4
         with:
           config: "scripts/cliff.toml"
@@ -279,4 +291,4 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.publish.outputs.new_git_tag }}
-          bodyFile: TEMP_CHANGELOG.md
+          bodyFile: ${{ steps.prev_tag.outputs.exists == 'true' && 'TEMP_CHANGELOG.md' || '' }}
