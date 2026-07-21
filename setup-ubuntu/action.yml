@@ -39,6 +39,10 @@ inputs:
   cli:
     description: Install CLI dependencies if `true`. Defaults to `false`.
     required: false
+  cache:
+    description: Enable dependency caching (pnpm, Solana, cargo) if `true`. Defaults to `true`.
+    required: false
+    default: 'true'
   purge:
     description: Purge unused directories if `true`. Defaults to `false`.
     required: false
@@ -70,7 +74,7 @@ runs:
       uses: actions/setup-node@v6
       with:
         node-version: 24
-        cache: 'pnpm'
+        cache: ${{ inputs.cache == 'true' && 'pnpm' || '' }}
 
     - name: Install Dependencies
       if: ${{ inputs.pnpm == 'true' }}
@@ -144,7 +148,7 @@ runs:
       uses: solana-program/actions/install-solana@v1
       with:
         version: ${{ inputs.solana }}
-        cache: true
+        cache: ${{ inputs.cache }}
 
     - name: Install CLI dependencies
       if: ${{ inputs.cli == 'true' }}
@@ -167,7 +171,7 @@ runs:
       run: cargo +"${{ inputs.nightly-toolchain }}" miri setup
 
     - name: Cache Cargo Dependencies
-      if: ${{ inputs.cargo-cache-key && !inputs.cargo-cache-fallback-key }}
+      if: ${{ inputs.cache == 'true' && inputs.cargo-cache-key && !inputs.cargo-cache-fallback-key }}
       uses: actions/cache@v5
       with:
         path: |
@@ -180,7 +184,7 @@ runs:
         restore-keys: ${{ runner.os }}-${{ inputs.cargo-cache-key }}
 
     - name: Cache Cargo Dependencies With Fallback
-      if: ${{ inputs.cargo-cache-key && inputs.cargo-cache-fallback-key }}
+      if: ${{ inputs.cache == 'true' && inputs.cargo-cache-key && inputs.cargo-cache-fallback-key }}
       uses: actions/cache@v5
       with:
         path: |
@@ -196,7 +200,7 @@ runs:
           ${{ runner.os }}-${{ inputs.cargo-cache-fallback-key }}
 
     - name: Cache Local Cargo Dependencies
-      if: ${{ inputs.cargo-cache-local-key }}
+      if: ${{ inputs.cache == 'true' && inputs.cargo-cache-local-key }}
       uses: actions/cache@v5
       with:
         path: |

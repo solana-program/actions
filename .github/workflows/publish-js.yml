@@ -45,25 +45,32 @@ jobs:
         with:
           pnpm: true
           solana: ${{ inputs.solana-cli-version }}
-          cargo-cache-key: cargo-publish-js-test-${{ inputs.package-path }}
-          cargo-cache-fallback-key: cargo-publish-js-test
+          cache: false
 
       - name: Format
-        run: make format-check-js-${{ inputs.target }}
+        env:
+          TARGET: ${{ inputs.target }}
+        run: make "format-check-js-${TARGET}"
 
       - name: Lint
-        run: make lint-js-${{ inputs.target }}
+        env:
+          TARGET: ${{ inputs.target }}
+        run: make "lint-js-${TARGET}"
 
       - name: Build programs
         shell: bash
+        env:
+          SBPF_PROGRAM_PACKAGES: ${{ inputs.sbpf-program-packages }}
         run: |
-          for program in ${{ inputs.sbpf-program-packages }}
+          for program in $SBPF_PROGRAM_PACKAGES
           do
-            make build-sbf-$program
+            make "build-sbf-${program}"
           done
 
       - name: Test
-        run: make test-js-${{ inputs.target }}
+        env:
+          TARGET: ${{ inputs.target }}
+        run: make "test-js-${TARGET}"
 
       - name: Write check summary
         shell: bash
@@ -115,6 +122,7 @@ jobs:
         uses: solana-program/actions/setup-ubuntu@main
         with:
           pnpm: true
+          cache: false
 
       - name: Set Git Author
         env:
@@ -152,17 +160,22 @@ jobs:
         id: publish
         env:
           NPM_CONFIG_PROVENANCE: "true"
+          LEVEL: ${{ inputs.level }}
+          TAG: ${{ inputs.tag }}
+          TARGET: ${{ inputs.target }}
         shell: bash
         run: |
-          echo "old_git_tag=$(make git-tag-js-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
-          LEVEL=${{ inputs.level }} TAG=${{ inputs.tag }} make publish-js-${{ inputs.target }}
-          echo "new_git_tag=$(make git-tag-js-${{ inputs.target }})" >> "${GITHUB_OUTPUT}"
+          echo "old_git_tag=$(make "git-tag-js-${TARGET}")" >> "${GITHUB_OUTPUT}"
+          LEVEL="$LEVEL" TAG="$TAG" make "publish-js-${TARGET}"
+          echo "new_git_tag=$(make "git-tag-js-${TARGET}")" >> "${GITHUB_OUTPUT}"
 
       - name: Git Commit Bump, Tag, and Push
         shell: bash
+        env:
+          NEW_GIT_TAG: ${{ steps.publish.outputs.new_git_tag }}
         run: |
-          git commit -am "Publish ${{ steps.publish.outputs.new_git_tag }}"
-          git tag -a "${{ steps.publish.outputs.new_git_tag }}" -m "Publish ${{ steps.publish.outputs.new_git_tag }}"
+          git commit -am "Publish ${NEW_GIT_TAG}"
+          git tag -a "${NEW_GIT_TAG}" -m "Publish ${NEW_GIT_TAG}"
           git push origin --follow-tags
 
       - name: Check previous tag exists
