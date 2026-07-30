@@ -31,6 +31,11 @@ on:
         description: Create a GitHub release
         required: true
         type: boolean
+      wasm-pack:
+        description: Install wasm-pack to build/test WebAssembly JS packages
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   test:
@@ -47,6 +52,12 @@ jobs:
           solana: ${{ inputs.solana-cli-version }}
           cargo-cache-key: cargo-publish-js-test-${{ inputs.package-path }}
           cargo-cache-fallback-key: cargo-publish-js-test
+
+      - name: Install wasm-pack
+        if: ${{ inputs.wasm-pack }}
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack
 
       - name: Format
         run: make format-check-js-${{ inputs.target }}
@@ -115,6 +126,12 @@ jobs:
         uses: solana-program/actions/setup-ubuntu@main
         with:
           pnpm: true
+
+      - name: Install wasm-pack
+        if: ${{ inputs.wasm-pack }}
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack
 
       - name: Set Git Author
         env:
