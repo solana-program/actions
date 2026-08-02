@@ -35,7 +35,6 @@ on:
         description: Install wasm-pack to build/test WebAssembly JS packages
         required: false
         type: boolean
-        default: false
 
 jobs:
   test:
