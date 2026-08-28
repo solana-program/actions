@@ -18,7 +18,7 @@
     "test": "vp test"
   },
   "dependencies": {
-    "@actions/core": "^1.11.1",
+    "@actions/core": "^3.0.1",
     "@actions/github": "^6.0.0",
     "js-yaml": "^4.1.0"
   },
