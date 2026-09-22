@@ -332,6 +332,7 @@ jobs:
         with:
           default-toolchain: true
           cli: true
+          solana: ${{ inputs.solana-cli-version }}
           cargo-cache-key: cargo-test-${{ matrix.package }}
 
       - name: Restore Program Builds
