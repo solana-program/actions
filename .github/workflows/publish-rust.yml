@@ -49,6 +49,11 @@ on:
         required: false
         default: true
         type: boolean
+      pnpm:
+        description: Install Node, pnpm and the JS dependencies in the release jobs
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   test:
@@ -105,6 +110,7 @@ jobs:
         with:
           cli: true
           cache: false
+          pnpm: ${{ inputs.pnpm }}
 
       - name: Install cargo-semver-checks
         uses: taiki-e/install-action@v2
@@ -200,6 +206,7 @@ jobs:
         with:
           cli: true
           cache: false
+          pnpm: ${{ inputs.pnpm }}
 
       - name: Install cargo-release and toml-cli
         uses: taiki-e/install-action@v2
