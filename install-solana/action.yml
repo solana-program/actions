@@ -10,7 +10,10 @@ inputs:
     required: true
     default: "true"
   base_url:
-    description: The base URL to download the Solana CLI from — e.g. https://release.anza.com.
+    description: The base URL to download the Solana CLI from — e.g. https://release.anza.xyz.
+    required: false
+  sha256:
+    description: Expected SHA-256 of the release tarball. Defaults to the GitHub release asset digest.
     required: false
 
 runs:
@@ -24,47 +27,69 @@ runs:
         path: |
           ~/.local/share/solana/install/releases
           ~/.cache/solana
-        key: ${{ runner.os }}-solana-${{ inputs.version }}
+        # v2: don't reuse binaries fetched by agave-install-init.
+        key: ${{ runner.os }}-solana-v2-${{ inputs.version }}
 
     - name: Resolve Inputs
       id: resolve
       run: |
-        desired="${{ inputs.version }}"
-
-        if [ "${{ inputs.base_url }}" != "" ]; then
-          echo "base_url='${{ inputs.base_url }}'" >> $GITHUB_OUTPUT
-        else
-          cutoff="1.18.19"
-          if [ "$(printf '%s\n' "$cutoff" "${desired#v}" | sort -V | head -n1)" = "${desired#v}" ] && [ "$cutoff" != "${desired#v}" ]; then
-            echo "base_url='https://release.solana.com'" >> $GITHUB_OUTPUT
-          else
-            echo "base_url='https://release.anza.xyz'" >> $GITHUB_OUTPUT
-          fi
+        version="$INPUT_VERSION"
+        if [[ $version =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          version="v$version"
         fi
-
-        if [[ $desired =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-          echo "version='v$desired'" >> $GITHUB_OUTPUT
-        else
-          echo "version='$desired'" >> $GITHUB_OUTPUT
-        fi
+        echo "version=$version" >> "$GITHUB_OUTPUT"
+        echo "base_url=${INPUT_BASE_URL:-https://release.anza.xyz}" >> "$GITHUB_OUTPUT"
       shell: bash
+      env:
+        INPUT_VERSION: ${{ inputs.version }}
+        INPUT_BASE_URL: ${{ inputs.base_url }}
 
     - name: Install Solana CLI
       if: inputs.cache != 'true' || steps.cache.outputs.cache-hit != 'true'
       run: |
-        sh -c "$(curl -sSfL ${{ steps.resolve.outputs.base_url }}/${{ steps.resolve.outputs.version }}/install)"
+        case "$RUNNER_OS-$RUNNER_ARCH" in
+          Linux-X64) target=x86_64-unknown-linux-gnu ;;
+          macOS-ARM64) target=aarch64-apple-darwin ;;
+          macOS-X64) target=x86_64-apple-darwin ;;
+          *) echo "::error::No Solana CLI release for $RUNNER_OS $RUNNER_ARCH"; exit 1 ;;
+        esac
+        asset="solana-release-$target.tar.bz2"
+        file="$RUNNER_TEMP/$asset"
+        curl -sSfL --proto '=https' --tlsv1.2 -o "$file" "$BASE_URL/$VERSION/$asset"
+
+        expected="$SHA256"
+        if [[ -z $expected && $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          expected=$(gh api "repos/anza-xyz/agave/releases/tags/$VERSION" \
+            --jq ".assets[] | select(.name == \"$asset\") | .digest // empty" \
+            | sed 's/^sha256://')
+        fi
+        if [[ -n $expected ]]; then
+          echo "$expected  $file" | shasum -a 256 -c
+        else
+          echo "::warning::No SHA-256 for $VERSION ($target); integrity relies on TLS only"
+        fi
+
+        release_dir="$HOME/.local/share/solana/install/releases/$VERSION"
+        mkdir -p "$release_dir"
+        tar -xjf "$file" -C "$release_dir"
       shell: bash
+      env:
+        VERSION: ${{ steps.resolve.outputs.version }}
+        BASE_URL: ${{ steps.resolve.outputs.base_url }}
+        SHA256: ${{ inputs.sha256 }}
+        GH_TOKEN: ${{ github.token }}
 
     - name: Set Active Version
       run: |
-        rm -f "$HOME/.local/share/solana/install/active_release"
-        release=$(ls -d $HOME/.local/share/solana/install/releases/*)
-        ln -s "$release/solana-release" "$HOME/.local/share/solana/install/active_release"
+        ln -sfn "$HOME/.local/share/solana/install/releases/$VERSION/solana-release" \
+          "$HOME/.local/share/solana/install/active_release"
       shell: bash
+      env:
+        VERSION: ${{ steps.resolve.outputs.version }}
 
     - name: Add Binary to Path
       run: |
-        echo "$HOME/.local/share/solana/install/active_release/bin" >> $GITHUB_PATH
+        echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
       shell: bash
 
     - name: Verify Binary Version
