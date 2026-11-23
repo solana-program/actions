@@ -88,7 +88,7 @@ on:
         default: true
 
 jobs:
-  format_and_lint_js:
+  format-and-lint-js:
     name: Format & Lint JS
     runs-on: ubuntu-latest
     if: ${{ inputs.js-packages }}
@@ -111,7 +111,7 @@ jobs:
       - name: Lint
         run: make lint-js-${{ matrix.package }}
 
-  format_and_lint_py:
+  format-and-lint-py:
     name: Format & Lint Python
     runs-on: ubuntu-latest
     if: ${{ inputs.py-packages }}
@@ -193,7 +193,7 @@ jobs:
       - name: Run cargo-spellcheck
         run: make spellcheck
 
-  format_and_lint_rust:
+  format-and-lint-rust:
     name: Format & Lint Rust
     runs-on: ubuntu-latest
     if: ${{ inputs.rust-packages }}
@@ -303,7 +303,7 @@ jobs:
 
   # The test jobs rely on this being successful, so we have to do the "if" check
   # at every step if `sbpf-program-packages` isn't specified.
-  build_sbpf:
+  build-sbpf:
     name: Build Programs
     runs-on: ubuntu-latest
     steps:
@@ -335,11 +335,11 @@ jobs:
           path: ./target/deploy/*.so
           key: ${{ runner.os }}-program-builds-${{ github.sha }}
 
-  test_rust:
+  test-rust:
     name: Test Rust
     runs-on: ubuntu-latest
     if: ${{ inputs.rust-packages }}
-    needs: build_sbpf
+    needs: build-sbpf
     strategy:
       matrix:
         package: ${{ fromJson(inputs.rust-packages) }}
@@ -387,11 +387,11 @@ jobs:
       - name: Run Miri
         run: make miri-${{ matrix.package }}
 
-  bench_rust:
+  bench-rust:
     name: Bench Rust
     runs-on: ubuntu-latest
     if: ${{ inputs.bench-packages }}
-    needs: build_sbpf
+    needs: build-sbpf
     strategy:
       matrix:
         package: ${{ fromJson(inputs.bench-packages) }}
@@ -428,7 +428,7 @@ jobs:
     name: Regression Programs
     runs-on: ubuntu-latest
     if: ${{ inputs.regression-packages }}
-    needs: build_sbpf
+    needs: build-sbpf
     strategy:
       matrix:
         package: ${{ fromJson(inputs.regression-packages) }}
@@ -463,7 +463,7 @@ jobs:
       - name: Regression
         run: make regression-${{ matrix.package }}
 
-  generate_idl:
+  generate-idl:
     name: Generate IDL
     runs-on: ubuntu-latest
     if: ${{ inputs.idl-packages }}
@@ -488,7 +488,7 @@ jobs:
           git status --porcelain
           test -z "$(git status --porcelain)"
 
-  generate_clients:
+  generate-clients:
     name: Check Client Generation
     runs-on: ubuntu-latest
     if: ${{ inputs.generate-clients }}
@@ -510,10 +510,10 @@ jobs:
           git status --porcelain
           test -z "$(git status --porcelain)"
 
-  test_js:
+  test-js:
     name: Test JS
     runs-on: ubuntu-latest
-    needs: build_sbpf
+    needs: build-sbpf
     if: ${{ inputs.js-packages }}
     strategy:
       matrix:
@@ -549,10 +549,10 @@ jobs:
           RUSTUP_TOOLCHAIN: ${{ inputs.wasm-pack && inputs.wasm-toolchain != 'default' && inputs.wasm-toolchain || '' }}
         run: make test-js-${{ matrix.package }}
 
-  test_py:
+  test-py:
     name: Test Python
     runs-on: ubuntu-latest
-    needs: build_sbpf
+    needs: build-sbpf
     if: ${{ inputs.py-packages }}
     strategy:
       matrix:
@@ -577,7 +577,7 @@ jobs:
       - name: Test
         run: make test-py-${{ matrix.package }}
 
-  no_std_core_packages:
+  no-std-core-packages:
     name: Check no-std core
     runs-on: ubuntu-latest
     if: ${{ inputs.no-std-core-packages }}
@@ -605,7 +605,7 @@ jobs:
         shell: bash
         run: make 'check-no-std-core-${{ matrix.package }}'
 
-  no_std_alloc_packages:
+  no-std-alloc-packages:
     name: Check no-std alloc
     runs-on: ubuntu-latest
     if: ${{ inputs.no-std-alloc-packages }}
@@ -632,3 +632,31 @@ jobs:
       - name: Check no-std
         shell: bash
         run: make 'check-no-std-alloc-${{ matrix.package }}'
+
+  all-jobs-done:
+    name: Run when all jobs done
+    needs:
+      - audit
+      - spellcheck
+      - format-and-lint-js
+      - format-and-lint-py
+      - format-and-lint-rust
+      - wasm
+      - wasm-js
+      - build-sbpf
+      - miri
+      - bench-rust
+      - regression
+      - generate-idl
+      - generate-clients
+      - test-js
+      - test-py
+      - test-rust
+      - no-std-core-packages
+      - no-std-alloc-packages
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if any needed job failed or was cancelled
+        if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')
+        run: exit 1
